@@ -1,0 +1,10 @@
+
+assign(max_models, -1).
+
+formulas(latin_square).
+
+x * y = x * z -> y = z.
+x * y = z * y -> x = z.
+
+end_of_list.
+

@@ -20,9 +20,9 @@ mace4 -n6 -N6 -f inputs/semi.in | interpformat > outputs/semi6.out
 Next, use splitModels to split up the models into smaller partitions using invariant vectors, and also throw away isomorphic models:
 
 ```text
-cat outputs/semi6.out | splitModels 6 
+cat outputs/semi6.out | splitModels 6 t
 ```
-The required argument, "6" in this example, is the order of the semigroup.
+The required argument, "6" in this example, is the order of the semigroup, and the optional second argument, "t", says multiprocessing is on.  Multiprocessing is off when this argument is not provided.
 
 The outputs may be in multiple files in the outputs folder, but the files will all be ending in `.f`.  To collect them:
 

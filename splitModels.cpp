@@ -28,6 +28,11 @@ int main(int argc, char* argv[])
 		std::cerr << "Missing argument: domain size." << std::endl;
 		return -1;
 	}
+	bool multiprocessing_on = false;
+	if (argc > 2) {
+		if (std::string(argv[2]) == "t")
+			multiprocessing_on = true;
+	}
 	int domain_size = atoi(argv[1]);
 	int mt_buf[domain_size][domain_size];
 	int* mt[domain_size];
@@ -88,12 +93,13 @@ int main(int argc, char* argv[])
 		if (counter >= min_models_in_file || idx == interps.size() - 1) {
 			counter = 0;
 			ofs.close();
-			std::string command("cat " + filename + " | isofilter > " + filename + ".f ");
-			if (num_file % 5 != 0 && idx < interps.size() - 1)
+			std::string command("cat " + filename + " | isofilter >> " + filename + ".f ");
+			if (num_file % 5 != 0 && idx < interps.size() - 1 && multiprocessing_on)
 				command += " &";
 			std::system(command.c_str());
 			if (idx < interps.size() - 1) {
-				++num_file;
+				if (multiprocessing_on)
+					++num_file;
 				filename = "outputs/models" + std::to_string(num_file) + ".out";
 				ofs.open(filename, std::ofstream::out);
 			}
