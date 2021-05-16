@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <iostream>
 #include "Invariant.h"
 
 struct VecComparator
@@ -51,6 +52,13 @@ int Invariant::count_non_zero(int s, const int vec[])
 }
 
 
+void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec)
+{
+	for (int idx = 0; idx < num_binop; ++idx) {
+		calc_invariant_vec(domain_size, all_mt[idx], all_inv_vec[idx]);
+	}
+}
+
 void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 {
 	int elementSquared[domain_size];
@@ -74,7 +82,7 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 		int ElPowers[domain_size];
 		std::fill(ElPowers, ElPowers+domain_size, 0);
 		ElPowers[el] = 1;
-		for (int pow = 2; pow <= domain_size+1; ++pow) {
+		for (int pow = 2; pow <= domain_size+2; ++pow) {
 			new_power = mt[new_power][el];
 			if (ElPowers[new_power] == 1) {
 				inv_vec[el][i_no] = pow;
@@ -88,10 +96,11 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 	/* Invariant 4: number of inverses
 	 * For each element x, number of elements y such that x = (xy)x
 	 */
+
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx)
 			if (mt[mt[el][jdx]][el] == el)
-				++(inv_vec[el][i_no]);
+				inv_vec[el][i_no] += 1;
 	}
 
 	++i_no;
@@ -122,44 +131,48 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 
 	++i_no;
 	/* Invariant 12: double centralizer
-	 * How many elements for which the square I commute with?
+	 * How many elements of which the square I commute with?
+	 * For each x, number of y such that x(yy) = (yy)x
 	 */
 	for (int el = 0; el < domain_size; ++el) {
-		for (int jdx = 0; jdx < domain_size; ++jdx)
+		for (int jdx = 0; jdx < domain_size; ++jdx) {
 			if (mt[el][elementSquared[jdx]] == mt[elementSquared[jdx]][el])
-				++(inv_vec[el][i_no]);
+				inv_vec[el][i_no] += 1;
+		}
 	}
 
 	++i_no;
 	/* Invariant 13: square root
 	 * number of element of which I am a square root
 	 */
-	for (int el = 0; el < domain_size; ++el)
+	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx)
 			if (elementSquared[jdx] == el)
-				++(inv_vec[el][i_no]);
-
+				inv_vec[el][i_no] += 1;
+	}
 
 	++i_no;
-	/* Invariant 14: associatizer
+	/* Invariant 14: associatizer, for each domain element x,
 	 * Number of elements y satisfying x(xy) = (xx)y
 	 */
-	for (int el = 0; el < domain_size; ++el)
-		for (int jdx = 1; jdx < domain_size; ++jdx)
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx) {
 			if (mt[el][mt[el][jdx]] == mt[elementSquared[el]][jdx])
-				++(inv_vec[el][i_no]);
-
+				inv_vec[el][i_no] += 1;
+		}
+	}
 
 	++i_no;
-	/* Invariant 15: product of commutators
+	/* Invariant 15: product of commutators, for each domain element s
 	 * Number of products xy = yx = s
 	 */
-	for (int idx = 0; idx < domain_size; ++idx)
+	for (int idx = 0; idx < domain_size; ++idx) {
 		for (int jdx = 0; jdx < domain_size; ++jdx) {
 			int s = mt[idx][jdx];
 			if (s == mt[jdx][idx])
 				inv_vec[s][i_no] += 1;
 		}
+	}
 
 	++i_no;
 	/* Invariant 17: ordering
@@ -184,12 +197,26 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 }
 
 
+void Invariant::hash_key(int domain_size, int num_binop, std::vector<int**> all_inv_vec, std::string& key)
+{
+	std::stringstream ss;
+	for (int idx = 0; idx < num_binop; ++idx) {
+		for (int el = 0; el < domain_size; ++el) {
+			for (int jdx = 0; jdx < invariant_size; ++jdx)
+				ss << all_inv_vec[idx][el][jdx] << ",";
+		}
+	}
+	key = ss.str();
+}
+
+
 void Invariant::hash_key(int domain_size, int** inv_vec, std::string& key)
 {
 	std::stringstream ss;
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < invariant_size; ++jdx)
 			ss << inv_vec[el][jdx] << ",";
+		ss << "|";
 	}
 	key = ss.str();
 }

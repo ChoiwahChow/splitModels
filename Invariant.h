@@ -9,6 +9,7 @@
 #define INVARIANT_H_
 
 #include <string>
+#include <vector>
 
 class Invariant {
 private:
@@ -19,9 +20,11 @@ public:
 	static const int invariant_size = 10;         // number of invariants
 
 	// mt - multiplication table
-	static void calc_invariant_vec(int domain_size, int** mt, int** invariant_vec);
+	static void calc_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec);
+	static void calc_invariant_vec(int domain_size, int** mt, int** inv_vec);
 	static int  invariant_vec_length(int domain_size) { return invariant_size * domain_size; };
 	static void hash_key(int domain_size, int** inv_vec, std::string& key);
+	static void hash_key(int domain_size, int num_binop, std::vector<int**> all_inv_vec, std::string& key);
 };
 
 
