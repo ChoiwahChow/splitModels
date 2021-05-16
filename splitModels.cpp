@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
 		interps[compact_key].push_back(ss.str());
 		ss.str("");
 	}
-	std::cerr << "Number of keys: " << next_key << std::endl;
-	return EXIT_SUCCESS;
+	std::cerr << "Number of distinct invariant vector keys: " << next_key << std::endl;
+	//return EXIT_SUCCESS;
 
 	size_t counter = 0;
 	int num_file = 1;
