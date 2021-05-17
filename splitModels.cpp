@@ -19,9 +19,9 @@
 #include "Invariant.h"
 #include "Interpretation.h"
 
-static size_t min_models_in_file = 50000;    // minimum number of models in a file to be processed by Mace4's isofilter
-static size_t model_size = 3000000;   // initial space allocated for this number of models
-static size_t max_num_functions = 5;  // maximum number of binary functions in the model
+static size_t min_models_in_file = 50000;   // minimum number of models in a file to be processed by Mace4's isofilter
+static size_t model_size = 3000000;   		// initial space allocated for this number of models
+static size_t max_num_functions = 5;  		// maximum number of binary functions in the model supported by this program
 
 
 int main(int argc, char* argv[])
