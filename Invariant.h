@@ -25,6 +25,7 @@ public:
 	static int  invariant_vec_length(int domain_size) { return invariant_size * domain_size; };
 	static void hash_key(int domain_size, int** inv_vec, std::string& key);
 	static void hash_key(int domain_size, int num_binop, std::vector<int**> all_inv_vec, std::string& key);
+	static void sort_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_inv_vecc);
 };
 
 

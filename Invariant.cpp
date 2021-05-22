@@ -12,10 +12,16 @@
 
 struct VecComparator
 {
+	int total_invariant_length;
+
+	VecComparator(int num_binary_op = 1) {
+		total_invariant_length = num_binary_op * Invariant::invariant_size;
+	}
+
 	inline bool operator()(const int* vec1, const int* vec2) const
 	{
 		// compare element-by-element, return when there is a difference between the two, true if vec1[x] < vec2[x], false otherwise
-		for (int idx = 0; idx < Invariant::invariant_size; ++idx)
+		for (int idx = 0; idx < total_invariant_length; ++idx)
 			if (vec1[idx] < vec2[idx])
 				return true;
 			else if (vec1[idx] > vec2[idx])
@@ -58,6 +64,16 @@ void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<i
 		calc_invariant_vec(domain_size, all_mt[idx], all_inv_vec[idx]);
 	}
 }
+
+
+void Invariant::sort_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_inv_vec)
+{
+	for (int idx = 0; idx < num_binop; ++idx) {
+		// Summarize the invariants by sorting the domain elements by the invariants
+		std::sort(all_inv_vec[idx], all_inv_vec[idx]+domain_size, VecComparator(1));  // to change
+	}
+}
+
 
 void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 {
@@ -191,9 +207,6 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 	}
 	for (int el = 0; el < domain_size; ++el)
 		inv_vec[el][i_no] = count_non_zero(domain_size, vec_list[el]);
-
-	// Summarize the invariants by sorting the domain elements by the invariants
-	std::sort(inv_vec, inv_vec+domain_size, VecComparator());
 }
 
 

@@ -15,17 +15,28 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <time.h>
+#include <sys/time.h>
 
 #include "Invariant.h"
 #include "Interpretation.h"
 
-static size_t min_models_in_file = 50000;   // minimum number of models in a file to be processed by Mace4's isofilter
+static size_t min_models_in_file = 1;   	// minimum number of models in a file to be processed by Mace4's isofilter
 static size_t model_size = 3000000;   		// initial space allocated for this number of models
 static size_t max_num_functions = 5;  		// maximum number of binary functions in the model supported by this program
 
+double get_wall_time(){
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        //  Handle error
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
 
 int main(int argc, char* argv[])
 {
+    double start_time = get_wall_time();
 	if (argc < 2) {
 		std::cerr << "Missing argument: domain size." << std::endl;
 		return -1;
@@ -35,9 +46,12 @@ int main(int argc, char* argv[])
 		filter = argv[2];
 	}
 	bool multiprocessing_on = false;
+	bool find_biggest_only = false;
 	if (argc > 3) {
 		if (std::string(argv[3]) == "-t")
 			multiprocessing_on = true;
+		else if (std::string(argv[3]) == "-b")
+			find_biggest_only = true;
 	}
 	int domain_size = atoi(argv[1]);
 
@@ -73,6 +87,7 @@ int main(int argc, char* argv[])
 		if (num_binop <= 0)
 			continue;
 		Invariant::calc_invariant_vec(domain_size, num_binop, all_mt, all_inv_vec);
+		Invariant::sort_invariant_vec(domain_size, num_binop, all_inv_vec);
 		Invariant::hash_key(domain_size, num_binop, all_inv_vec, key);
 		int compact_key;
 		if (buckets.find(key) != buckets.end()) {
@@ -87,19 +102,36 @@ int main(int argc, char* argv[])
 		interps[compact_key].push_back(ss.str());
 		ss.str("");
 	}
-	std::cerr << "Number of distinct invariant vector keys: " << next_key << std::endl;
+	double duration = get_wall_time() - start_time;
+	std::cerr << "Number of distinct invariant vector keys: " << next_key << " in " << duration << " seconds." << std::endl;
 	//return EXIT_SUCCESS;
 
+	size_t start_pos = 0;
+	size_t end_pos = interps.size();
+	if (find_biggest_only) {
+		size_t biggest = interps[start_pos].size();
+		for (size_t idx=0; idx < interps.size(); ++idx) {
+			if (biggest < interps[idx].size()) {
+				biggest = interps[idx].size();
+				start_pos = idx;
+			}
+		}
+		end_pos = start_pos + 1;
+		std::cerr << "Biggest partition: " << biggest << std::endl;
+	}
+
+	double max_time = 0.0;
 	size_t counter = 0;
 	int num_file = 1;
 	std::ofstream ofs;
 	std::string filename("outputs/models" + std::to_string(num_file) + ".out");
 	ofs.open(filename, std::ofstream::out);
-	for (size_t idx=0; idx < interps.size(); ++idx) {
+	for (size_t idx = start_pos; idx < end_pos; ++idx) {
+	    double start_time = get_wall_time();
 		counter += interps[idx].size();
 		for (size_t jdx=0; jdx < interps[idx].size(); ++jdx)
 			ofs << interps[idx][jdx];
-		if (counter >= min_models_in_file || idx == interps.size() - 1) {
+		if (counter >= min_models_in_file || idx == end_pos - 1) {
 			counter = 0;
 			ofs.close();
 			std::string command("cat " + filename + " | " + filter + " >> " + filename + ".f ");
@@ -113,7 +145,11 @@ int main(int argc, char* argv[])
 				ofs.open(filename, std::ofstream::out);
 			}
 		}
+		double duration = get_wall_time() - start_time;
+		if (duration > max_time)
+			max_time = duration;
 	}
+	std::cerr << "Maximum Processing time " << max_time << std::endl;
 	std::cerr << "Number of distinct invariant vector keys: " << next_key << std::endl;
 	return EXIT_SUCCESS;
 }
