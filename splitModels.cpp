@@ -60,19 +60,22 @@ int main(int argc, char* argv[])
 	 */
 	int mt_buf[domain_size*max_num_functions][domain_size];
 	int* mt[domain_size*max_num_functions];
-	int inv_vec_buf[domain_size*max_num_functions][Invariant::invariant_size];
-	int* inv_vec[domain_size*max_num_functions];
-	std::vector<int**> all_mt;
-	std::vector<int**> all_inv_vec;
+	int inv_vec_buf[domain_size][Invariant::invariant_size*max_num_functions];
+	int* inv_vec[domain_size*max_num_functions];  // each binary function occupies domain_size contiguous slots
+	std::vector<int**> all_mt;      // each binary function occupies one slot in this vector
+	std::vector<int**> all_inv_vec; // each binary function occupies one slot in this vector
+	int* combo_inv_vec[domain_size];
 
 	for (size_t idx = 0; idx < max_num_functions; ++idx) {
 		for (int jdx = 0; jdx < domain_size; ++jdx) {
-			inv_vec[idx*domain_size+jdx] = reinterpret_cast<int*>(&inv_vec_buf[idx*domain_size+jdx]);
+			inv_vec[idx*domain_size+jdx] = &inv_vec_buf[jdx][idx*Invariant::invariant_size];
 			mt[idx*domain_size+jdx] = reinterpret_cast<int*>(&mt_buf[idx*domain_size+jdx]);
 		}
 		all_mt.push_back(&mt[idx*domain_size]);
 		all_inv_vec.push_back(&inv_vec[idx*domain_size]);
 	}
+	for (int idx = 0; idx < domain_size; ++idx)
+		combo_inv_vec[idx] = inv_vec[idx];
 
 	std::string line;
 	std::vector<std::vector<std::string>> interps;  // stores all interpretations
@@ -87,8 +90,8 @@ int main(int argc, char* argv[])
 		if (num_binop <= 0)
 			continue;
 		Invariant::calc_invariant_vec(domain_size, num_binop, all_mt, all_inv_vec);
-		Invariant::sort_invariant_vec(domain_size, num_binop, all_inv_vec);
-		Invariant::hash_key(domain_size, num_binop, all_inv_vec, key);
+		Invariant::sort_invariant_vec(domain_size, num_binop, combo_inv_vec);
+		Invariant::hash_key(domain_size, num_binop, combo_inv_vec, key);
 		int compact_key;
 		if (buckets.find(key) != buckets.end()) {
 			compact_key = buckets[key];

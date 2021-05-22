@@ -12,7 +12,7 @@
 
 struct VecComparator
 {
-	int total_invariant_length;
+	int total_invariant_length = Invariant::invariant_size;
 
 	VecComparator(int num_binary_op = 1) {
 		total_invariant_length = num_binary_op * Invariant::invariant_size;
@@ -66,12 +66,9 @@ void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<i
 }
 
 
-void Invariant::sort_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_inv_vec)
+void Invariant::sort_invariant_vec(int domain_size, int num_binop, int** combo_inv_vec)
 {
-	for (int idx = 0; idx < num_binop; ++idx) {
-		// Summarize the invariants by sorting the domain elements by the invariants
-		std::sort(all_inv_vec[idx], all_inv_vec[idx]+domain_size, VecComparator(1));  // to change
-	}
+	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop));
 }
 
 
@@ -210,14 +207,12 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 }
 
 
-void Invariant::hash_key(int domain_size, int num_binop, std::vector<int**> all_inv_vec, std::string& key)
+void Invariant::hash_key(int domain_size, int num_binop, int** combo_in_vec, std::string& key)
 {
 	std::stringstream ss;
-	for (int idx = 0; idx < num_binop; ++idx) {
-		for (int el = 0; el < domain_size; ++el) {
-			for (int jdx = 0; jdx < invariant_size; ++jdx)
-				ss << all_inv_vec[idx][el][jdx] << ",";
-		}
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < num_binop*invariant_size; ++jdx)
+			ss << combo_in_vec[el][jdx] << ",";
 	}
 	key = ss.str();
 }
