@@ -14,8 +14,8 @@ struct VecComparator
 {
 	int total_invariant_length = Invariant::invariant_size;
 
-	VecComparator(int num_binary_op = 1) {
-		total_invariant_length = num_binary_op * Invariant::invariant_size;
+	VecComparator(int length = Invariant::invariant_size) {
+		total_invariant_length = length;
 	}
 
 	inline bool operator()(const int* vec1, const int* vec2) const
@@ -58,6 +58,7 @@ int Invariant::count_non_zero(int s, const int vec[])
 }
 
 
+
 void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec)
 {
 	for (int idx = 0; idx < num_binop; ++idx) {
@@ -68,7 +69,59 @@ void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<i
 
 void Invariant::sort_invariant_vec(int domain_size, int num_binop, int** combo_inv_vec)
 {
-	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop));
+	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop * Invariant::invariant_size));
+}
+
+
+void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv_vec)
+{
+	for (int idx = 0; idx < domain_size; ++idx) {
+		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
+	}
+
+	int i_no = 0;
+	/* Invariant 1: related
+	 * For each domain element x, number of y such that R(x, y)
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx)
+			if (mt[el][jdx] == 1)
+				inv_vec[el][i_no] += 1;
+	}
+
+	++i_no;
+	/* Invariant 2: inverse related
+	 * For each domain element x, number of y such that R(y, x)
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx)
+			if (mt[jdx][el] == 1)
+				inv_vec[el][i_no] += 1;
+	}
+
+	++i_no;
+	/* Invariant 3: reflexivity
+	 * For each domain element x, R(x, x)
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		if (mt[el][el] == 1)
+			inv_vec[el][i_no] += 1;
+	}
+
+	++i_no;
+	/* Invariant 4: transitivity
+	 * For each domain element x, the number of y and z pairs such that R(x, y) & R(y, z) &  R(x, z)
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx) {
+			if (mt[el][jdx] == 1) {
+				for (int kdx = 0; kdx < domain_size; ++kdx) {
+					if (mt[jdx][kdx] == 1)
+						inv_vec[el][i_no] += 1;
+				}
+			}
+		}
+	}
 }
 
 
@@ -228,4 +281,78 @@ void Invariant::hash_key(int domain_size, int** inv_vec, std::string& key)
 	}
 	key = ss.str();
 }
+
+void Invariant::calc_cross_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec)
+{
+	calc_2_invariant_vec(domain_size, all_mt[0], all_mt[1], all_inv_vec[0]);
+}
+
+
+void Invariant::sort_cross_invariant_vec(int domain_size,  int** combo_inv_vec)
+{
+	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(Invariant::invariant_size_2));
+}
+
+
+void Invariant::cross_hash_key(int domain_size, int** combo_in_vec, std::string& key)
+{
+	std::stringstream ss;
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < invariant_size_2; ++jdx)
+			ss << combo_in_vec[el][jdx] << ",";
+	}
+	key = ss.str();
+	std::cerr << key << std::endl;
+}
+
+
+void Invariant::calc_2_invariant_vec(int domain_size, int** mt1, int** mt2, int** inv_vec)
+{
+	for (int idx = 0; idx < domain_size; ++idx) {
+		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size_2, 0);
+	}
+
+	int i_no = 0;
+	/* Invariant 1:
+	 * x * (y + z) = (y * x) + (z * z).
+     */
+	for (int xdx = 0; xdx < domain_size; ++xdx) {
+		for (int ydx = 0; ydx < domain_size; ++ydx) {
+			for (int zdx = 0; zdx < domain_size; ++zdx) {
+				if (mt2[xdx][mt1[ydx][zdx]] == mt1[mt2[ydx][xdx]][mt2[zdx][zdx]]) {
+					inv_vec[xdx][i_no] += 1;
+					break;
+				}
+			}
+		}
+	}
+
+	++i_no;
+	/* Invariant 2:
+	 * ((y + ( x * y )) + z) * z = ((z + x) * z) * z.
+     */
+	for (int xdx = 0; xdx < domain_size; ++xdx) {
+		for (int ydx = 0; ydx < domain_size; ++ydx) {
+			for (int zdx = 0; zdx < domain_size; ++zdx) {
+				if (mt2[mt1[ydx][mt2[xdx][ydx]]][zdx] == mt2[mt2[mt1[zdx][xdx]][zdx]][zdx]) {
+					inv_vec[xdx][i_no] += 1;
+					break;
+				}
+			}
+		}
+	}
+
+	++i_no;
+	/* Invariant 3:
+	 * x + y = y * x.
+     */
+	for (int xdx = 0; xdx < domain_size; ++xdx) {
+		for (int ydx = 0; ydx < domain_size; ++ydx) {
+			if (mt1[xdx][ydx] == mt2[ydx][xdx]) {
+				inv_vec[xdx][i_no] += 1;
+			}
+		}
+	}
+}
+
 

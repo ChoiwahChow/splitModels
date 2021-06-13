@@ -21,7 +21,7 @@
 #include "Invariant.h"
 #include "Interpretation.h"
 
-static size_t min_models_in_file = 1;   	// minimum number of models in a file to be processed by Mace4's isofilter
+static size_t min_models_in_file = 20000;   	// minimum number of models in a file to be processed by Mace4's isofilter
 static size_t model_size = 3000000;   		// initial space allocated for this number of models
 static size_t max_num_functions = 5;  		// maximum number of binary functions in the model supported by this program
 
@@ -89,9 +89,15 @@ int main(int argc, char* argv[])
 		int num_binop = Interpretation::parse_interpretation(std::cin, domain_size, all_mt, ss);
 		if (num_binop <= 0)
 			continue;
+		/*
+		Invariant::calc_cross_invariant_vec(domain_size, num_binop, all_mt, all_inv_vec);
+		Invariant::sort_cross_invariant_vec(domain_size, combo_inv_vec);
+		Invariant::cross_hash_key(domain_size, combo_inv_vec, key);
+		*/
 		Invariant::calc_invariant_vec(domain_size, num_binop, all_mt, all_inv_vec);
 		Invariant::sort_invariant_vec(domain_size, num_binop, combo_inv_vec);
 		Invariant::hash_key(domain_size, num_binop, combo_inv_vec, key);
+
 		int compact_key;
 		if (buckets.find(key) != buckets.end()) {
 			compact_key = buckets[key];
@@ -105,8 +111,8 @@ int main(int argc, char* argv[])
 		interps[compact_key].push_back(ss.str());
 		ss.str("");
 	}
-	double duration = get_wall_time() - start_time;
-	std::cerr << "Number of distinct invariant vector keys: " << next_key << " in " << duration << " seconds." << std::endl;
+	double inv_calc_time = get_wall_time() - start_time;
+	std::cerr << "Number of distinct invariant vector keys: " << next_key << " in " << inv_calc_time << " seconds." << std::endl;
 	//return EXIT_SUCCESS;
 
 	size_t start_pos = 0;
@@ -153,6 +159,7 @@ int main(int argc, char* argv[])
 			max_time = duration;
 	}
 	std::cerr << "Maximum Processing time " << max_time << std::endl;
-	std::cerr << "Number of distinct invariant vector keys: " << next_key << std::endl;
+	std::cerr << "Number of distinct invariant vector keys: " << next_key << " in " << inv_calc_time << " seconds." << std::endl;
+	std::cerr << "Total run time: " << get_wall_time() - start_time << std::endl;
 	return EXIT_SUCCESS;
 }
