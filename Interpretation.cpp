@@ -6,6 +6,7 @@
  */
 
 #include <ostream>
+#include <iostream>
 #include "Interpretation.h"
 
 const std::string Interpretation::interp = std::string("interpretation");
@@ -29,7 +30,7 @@ void Interpretation::parse_row(const std::string& line, int* vec)
 }
 
 // TODO: allow specifying binop to process
-int Interpretation::parse_interpretation(std::istream& is, int domain_size, std::vector<int**> all_mt, std::stringstream& ss)
+int Interpretation::parse_interpretation(std::istream& is, int domain_size, std::vector<int**>& all_mt, std::stringstream& ss)
 {
 	std::string line;
 	bool in_binop = false;

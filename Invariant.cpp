@@ -59,17 +59,29 @@ int Invariant::count_non_zero(int s, const int vec[])
 
 
 
-void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec)
+void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<int**>& all_mt, std::vector<int**>& all_inv_vec, std::vector<int*>& pre_calced)
 {
 	for (int idx = 0; idx < num_binop; ++idx) {
 		calc_invariant_vec(domain_size, all_mt[idx], all_inv_vec[idx]);
+	}
+	int binpos = num_binop;
+	int col = 0;
+	for (unsigned int idx = 0; idx < pre_calced.size(); ++idx) {
+		for( int jdx = 0; jdx < domain_size; ++jdx) {
+			all_inv_vec[binpos][jdx][idx%invariant_size] = pre_calced[idx][jdx];
+		}
+		col++;
+		if (col == invariant_size) {
+			col = 0;
+			binpos++;
+		}
 	}
 }
 
 
 void Invariant::sort_invariant_vec(int domain_size, int num_binop, int** combo_inv_vec)
 {
-	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop * Invariant::invariant_size));
+	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop * invariant_size));
 }
 
 
@@ -80,7 +92,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 	}
 
 	int i_no = 0;
-	/* Invariant 1: related
+	/* Invariant 1: relatedness
 	 * For each domain element x, number of y such that R(x, y)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
@@ -90,7 +102,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 	}
 
 	++i_no;
-	/* Invariant 2: inverse related
+	/* Invariant 2: inverse relatedness
 	 * For each domain element x, number of y such that R(y, x)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
@@ -110,7 +122,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 
 	++i_no;
 	/* Invariant 4: transitivity
-	 * For each domain element x, the number of y and z pairs such that R(x, y) & R(y, z) &  R(x, z)
+	 * For each domain element x, the number of y and z pairs such that R(x, y) & R(y, z) & R(x, z)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx) {
@@ -213,8 +225,10 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx)
-			if (elementSquared[jdx] == el)
+			if (elementSquared[jdx] == el) {
 				inv_vec[el][i_no] += 1;
+				// inv_vec[jdx][i_no] += 1;
+			}
 	}
 
 	++i_no;

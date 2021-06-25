@@ -1,7 +1,7 @@
 CXXFLAGS = -g -Wall -fmessage-length=0
 # CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 
-OBJS =		splitModels.o Invariant.o Interpretation.o
+OBJS =		splitModels.o Invariant.o Interpretation.o TreeNode.o
 
 LIBS =
 

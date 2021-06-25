@@ -22,7 +22,7 @@ public:
 	static const std::string nested_closing;
 
 	static void parse_row(const std::string& line, int* vec);
-	static int  parse_interpretation(std::istream& is, int domain_size, std::vector<int**> all_mt, std::stringstream& ss);
+	static int  parse_interpretation(std::istream& is, int domain_size, std::vector<int**>& all_mt, std::stringstream& ss);
 };
 
 
