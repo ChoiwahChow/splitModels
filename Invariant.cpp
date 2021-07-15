@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iostream>
+#include "Interpretation.h"
 #include "Invariant.h"
 
 struct VecComparator
@@ -59,34 +60,73 @@ int Invariant::count_non_zero(int s, const int vec[])
 
 
 
-void Invariant::calc_invariant_vec(int domain_size, int num_binop, std::vector<int**>& all_mt, std::vector<int**>& all_inv_vec, std::vector<int*>& pre_calced)
+void Invariant::sort_invariant_vec(int domain_size, int num_binops, int** combo_inv_vec)
 {
-	for (int idx = 0; idx < num_binop; ++idx) {
-		calc_invariant_vec(domain_size, all_mt[idx], all_inv_vec[idx]);
-	}
-	int binpos = num_binop;
-	int col = 0;
-	for (unsigned int idx = 0; idx < pre_calced.size(); ++idx) {
-		for( int jdx = 0; jdx < domain_size; ++jdx) {
-			all_inv_vec[binpos][jdx][idx%invariant_size] = pre_calced[idx][jdx];
-		}
-		col++;
-		if (col == invariant_size) {
-			col = 0;
-			binpos++;
-		}
-	}
+	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binops * invariant_size));
 }
 
 
-void Invariant::sort_invariant_vec(int domain_size, int num_binop, int** combo_inv_vec)
+void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec)
 {
-	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(num_binop * invariant_size));
+	/*
+	 * Calculate the invariant vector for a unary relation
+	 * The binary relation is coded as the 2-d array (1-d array of domain_size pointers of invariant_size integers) mt.
+	 * But only the first row is used because it is a unary function.
+	 * The invariants (up to invariant_size of them) for each element is a row in inv_vec (1-d array of domain_size pointers)
+	 * That is, each column in inv_vec is the same invariant for each element.  Unused columns in inv_vec are filled with 0's.
+	 */
+	for (int idx = 0; idx < domain_size; ++idx) {
+		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
+	}
+
+	int i_no = 0;
+	/* Invariant 1: idempotency
+	 * For each domain element x, 1 if x' = x
+	 */
+	for (int el = 0; el < domain_size; el++) {
+		if (mt[el] == el)
+			inv_vec[el][i_no] = 1;
+	}
+
+	++i_no;
+	/* Invariant 2: unary of unary equals self
+	 * For each domain element x, 1 if x'' = x & x' != x, 0 otherwise
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		if (mt[el] != el && mt[mt[el]] == el)
+			inv_vec[el][i_no] = 1;
+	}
+
+	++i_no;
+	/* Invariant 3: range
+	 * For each domain element x, number of y such that y' = x
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx)
+			if (mt[jdx] == el)
+				inv_vec[el][i_no] += 1;
+	}
+
+	++i_no;
+	/* Invariant 4: range of range
+	 * For each domain element x, number of y such that y'' = x
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int jdx = 0; jdx < domain_size; ++jdx)
+			if (mt[mt[jdx]] == el)
+				inv_vec[el][i_no] += 1;
+	}
 }
 
 
 void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv_vec)
 {
+	/*
+	 * Calculate the invariant vector for a binary relation
+	 * The binary relation is coded as the 2-d array (1-d array of domain_size pointers of invariant_size integers) mt.
+	 * The invariants (up to invariant_size of them) for each element is a row in inv_vec (1-d array of domain_size pointers)
+	 * That is, each column in inv_vec is the same invariant for each element.   Unused columns in inv_vec are filled with 0's.
+	 */
 	for (int idx = 0; idx < domain_size; ++idx) {
 		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
@@ -103,7 +143,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 
 	++i_no;
 	/* Invariant 2: inverse relatedness
-	 * For each domain element x, number of y such that R(y, x)
+	 * For each domain element x, number of R(y, x)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx)
@@ -121,16 +161,13 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 	}
 
 	++i_no;
-	/* Invariant 4: transitivity
-	 * For each domain element x, the number of y and z pairs such that R(x, y) & R(y, z) & R(x, z)
+	/* Invariant 4:
+	 * For each domain element x, the number of y such that R(x, y) & R(y, x)
 	 */
 	for (int el = 0; el < domain_size; ++el) {
 		for (int jdx = 0; jdx < domain_size; ++jdx) {
-			if (mt[el][jdx] == 1) {
-				for (int kdx = 0; kdx < domain_size; ++kdx) {
-					if (mt[jdx][kdx] == 1)
-						inv_vec[el][i_no] += 1;
-				}
+			if (mt[el][jdx] == 1 && mt[jdx][el] == 1) {
+				inv_vec[el][i_no] += 1;
 			}
 		}
 	}
@@ -139,14 +176,20 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 
 void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 {
+	/*
+	 * Calculate the invariant vector for a binary function
+	 * The binary function is coded as the 2-d array (1-d array of domain_size pointers of invariant_size integers) mt.
+	 * The invariants (up to invariant_size of them) for each element is a row in inv_vec (1-d array of domain_size pointers)
+	 * That is, each column in inv_vec is the same invariant for each element.
+	 */
+	for (int idx = 0; idx < domain_size; ++idx) {
+		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
+	}
+
 	int elementSquared[domain_size];
 
 	for (int idx = 0; idx < domain_size; ++idx) {
 		elementSquared[idx] = mt[idx][idx];
-	}
-
-	for (int idx = 0; idx < domain_size; ++idx) {
-		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
 
 	int i_no = 0;
@@ -273,12 +316,38 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 		inv_vec[el][i_no] = count_non_zero(domain_size, vec_list[el]);
 }
 
+void Invariant::calc_invariant_vec(int domain_size, int num_ops, std::vector<int**>& all_mt,
+		std::vector<int**>& all_inv_vec, std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int*>& pre_calced)
+{
+	for (int op = 0; op < num_ops; ++op) {
+		if (op_type[op] == InterpretationType::unary_function)
+			calc_unary_invariant_vec(domain_size, all_mt[op][0], all_inv_vec[op]);
+		else if( op_type[op] == InterpretationType::function) // function
+			calc_invariant_vec(domain_size, all_mt[op], all_inv_vec[op]);
+		else {
+			calc_relation_invariant_vec(domain_size, all_mt[op], all_inv_vec[op]);
+		}
+	}
+	int binpos = num_ops;
+    int col = 0;
+    for (size_t idx = 0; idx < pre_calced.size(); ++idx) {
+		for( int jdx = 0; jdx < domain_size; ++jdx) {
+			all_inv_vec[binpos][jdx][idx%invariant_size] = pre_calced[idx][jdx];
+		}
+		col++;
+		if (col == invariant_size) {
+			col = 0;
+			binpos++;
+		}
+    }
+}
 
-void Invariant::hash_key(int domain_size, int num_binop, int** combo_in_vec, std::string& key)
+
+void Invariant::hash_key(int domain_size, int num_binops, int** combo_in_vec, std::string& key)
 {
 	std::stringstream ss;
 	for (int el = 0; el < domain_size; ++el) {
-		for (int jdx = 0; jdx < num_binop*invariant_size; ++jdx)
+		for (int jdx = 0; jdx < num_binops*invariant_size; ++jdx)
 			ss << combo_in_vec[el][jdx] << ",";
 	}
 	key = ss.str();
@@ -294,79 +363,6 @@ void Invariant::hash_key(int domain_size, int** inv_vec, std::string& key)
 		ss << "|";
 	}
 	key = ss.str();
-}
-
-void Invariant::calc_cross_invariant_vec(int domain_size, int num_binop, std::vector<int**> all_mt, std::vector<int**> all_inv_vec)
-{
-	calc_2_invariant_vec(domain_size, all_mt[0], all_mt[1], all_inv_vec[0]);
-}
-
-
-void Invariant::sort_cross_invariant_vec(int domain_size,  int** combo_inv_vec)
-{
-	std::sort(combo_inv_vec, combo_inv_vec+domain_size, VecComparator(Invariant::invariant_size_2));
-}
-
-
-void Invariant::cross_hash_key(int domain_size, int** combo_in_vec, std::string& key)
-{
-	std::stringstream ss;
-	for (int el = 0; el < domain_size; ++el) {
-		for (int jdx = 0; jdx < invariant_size_2; ++jdx)
-			ss << combo_in_vec[el][jdx] << ",";
-	}
-	key = ss.str();
-	std::cerr << key << std::endl;
-}
-
-
-void Invariant::calc_2_invariant_vec(int domain_size, int** mt1, int** mt2, int** inv_vec)
-{
-	for (int idx = 0; idx < domain_size; ++idx) {
-		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size_2, 0);
-	}
-
-	int i_no = 0;
-	/* Invariant 1:
-	 * x * (y + z) = (y * x) + (z * z).
-     */
-	for (int xdx = 0; xdx < domain_size; ++xdx) {
-		for (int ydx = 0; ydx < domain_size; ++ydx) {
-			for (int zdx = 0; zdx < domain_size; ++zdx) {
-				if (mt2[xdx][mt1[ydx][zdx]] == mt1[mt2[ydx][xdx]][mt2[zdx][zdx]]) {
-					inv_vec[xdx][i_no] += 1;
-					break;
-				}
-			}
-		}
-	}
-
-	++i_no;
-	/* Invariant 2:
-	 * ((y + ( x * y )) + z) * z = ((z + x) * z) * z.
-     */
-	for (int xdx = 0; xdx < domain_size; ++xdx) {
-		for (int ydx = 0; ydx < domain_size; ++ydx) {
-			for (int zdx = 0; zdx < domain_size; ++zdx) {
-				if (mt2[mt1[ydx][mt2[xdx][ydx]]][zdx] == mt2[mt2[mt1[zdx][xdx]][zdx]][zdx]) {
-					inv_vec[xdx][i_no] += 1;
-					break;
-				}
-			}
-		}
-	}
-
-	++i_no;
-	/* Invariant 3:
-	 * x + y = y * x.
-     */
-	for (int xdx = 0; xdx < domain_size; ++xdx) {
-		for (int ydx = 0; ydx < domain_size; ++ydx) {
-			if (mt1[xdx][ydx] == mt2[ydx][xdx]) {
-				inv_vec[xdx][i_no] += 1;
-			}
-		}
-	}
 }
 
 
