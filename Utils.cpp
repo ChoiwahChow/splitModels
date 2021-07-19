@@ -35,8 +35,9 @@ void Utils::save_statistics(const std::string& file_path, int num_buckets, int n
 		int num_random, double inv_calc_time, double total_run_time, double max_time)
 {
 	std::cerr << "Number of models: " << num_models << ", sampling frequency: " << sampling_frequency << std::endl;
-	std::cerr << "Number of distinct invariant vector keys: " << num_buckets << " in " << inv_calc_time << " seconds." << std::endl;
-	std::cerr << "Number of random invariants: " << num_models << std::endl;
+	std::cerr << "Number of buckets: " << num_buckets << " in " << inv_calc_time << " seconds." << std::endl;
+	if (num_random > 0)
+		std::cerr << "Number of random invariants: " << num_random << std::endl;
 	std::cerr << "Maximum Processing time " << max_time << std::endl;
 	std::cerr << "Total run time: " << total_run_time << std::endl;
 

@@ -106,8 +106,9 @@ void Tree::build_tree_structure(std::vector<int**>& all_mt, std::vector<std::str
 	build_node(&right, 1, all_mt, op_sym);
 	if (all_bin_relation_mt.size() > 0) {
 		if (rand() % 2 == 0) {
-			sym = bin_relation_op_sym[0];
-			op = all_bin_relation_mt[0];
+			int x = rand() % all_bin_relation_mt.size();
+			sym = bin_relation_op_sym[x];
+			op = all_bin_relation_mt[x];
 		}
 	}
 /*
@@ -128,7 +129,7 @@ int Tree::find_next_1(std::vector<int> vec, unsigned int start_pos) {
 
 void Tree::calc_invariant_vector(unsigned int domain_size)
 {
-	// check that domain_size >= num_labels
+	// TODO:: check that domain_size >= num_labels
 
 	std::vector<int> values(domain_size, 0);
 	int num_label_in_use = std::accumulate(label_in_use.begin(), label_in_use.end(), decltype(label_in_use)::value_type(0));

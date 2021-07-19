@@ -13,10 +13,30 @@ const std::string Interpretation::interp = std::string("interpretation");
 const std::string Interpretation::function = std::string("function");
 const std::string Interpretation::relation = std::string("relation");
 const std::string Interpretation::binary_op = std::string("(_,_)");
-const std::string Interpretation::tenary_op = std::string("(_,_,_)");
+const std::string Interpretation::ternary_op = std::string("(_,_,_)");
 const std::string Interpretation::unary_op = std::string("(_)");
 const std::string Interpretation::closing = std::string("])]).");
 const std::string Interpretation::nested_closing = std::string("]),");
+
+
+/*
+ * Special case: ternary operation.
+ * We only count the number of times a domain element appears in the table,
+ * and do not construct the 3-d multiplication table.  That is, we actually
+ * generate an invariant for it.
+ */
+void Interpretation::count_appearances(const std::string& line, int* vec)
+{
+	std::stringstream row(line);
+	std::string el;
+	int val = 0;
+	while(std::getline(row, el, ','))
+    {
+		std::stringstream elst(el);
+        elst >> val;
+        vec[val] += 1;
+    }
+}
 
 
 void Interpretation::parse_row(const std::string& line, int* vec)
@@ -84,6 +104,21 @@ int Interpretation::parse_interpretation(std::istream& is, int domain_size, std:
 						std::string map = line.substr(left_paran_pos+1);
 						parse_row(map, mt[0]);
 						++num_ops;
+					}
+					else {
+						size_t ternop_pos = line.find(ternary_op, 0);
+						if (ternop_pos != std::string::npos) {
+							mt = all_mt[num_ops];
+							if (extract_sym) {
+								unsigned int paran_pos = line.find("(");
+								op_sym.push_back(line.substr(paran_pos+1, ternop_pos - paran_pos - 1));
+								op_type[num_ops] = InterpretationType::ternary_function;
+							}
+							unsigned int left_paran_pos = line.find("[");
+							std::string map = line.substr(left_paran_pos+1);
+							count_appearances(map, mt[0]);
+							++num_ops;
+						}
 					}
 				}
 			}

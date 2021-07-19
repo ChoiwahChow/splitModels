@@ -23,6 +23,8 @@ public:
 	static const char arg_output_file_prefix = 'o';
 	static const char arg_statistics_file = 't';
 	static const char arg_initial_random_seed = 'e';
+	static const char arg_interpretation_file_name = 'i';
+	static const char arg_max_random_level = 'l';
 public:
 	int           domain_size;
 	int           min_models_in_file;
@@ -35,6 +37,8 @@ public:
 	std::string   output_file_prefix;
 	std::string   statistics_file;
 	int           seed;
+	std::string   interpretation_file_name;
+	int           max_random_level;
 
 public:
 	ArgumentParser(int argc, char* argv[]);

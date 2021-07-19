@@ -35,3 +35,6 @@
 .project
 .settings/
 
+# input files
+inputs/
+working/

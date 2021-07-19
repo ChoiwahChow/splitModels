@@ -11,7 +11,8 @@
 
 ArgumentParser::ArgumentParser(int argc, char* argv[]):
 	domain_size(-1), min_models_in_file(1), sampling_frequency(1), max_sample_size(1000000), num_random(0), multiprocessing_on(false),
-	mace_filter("isofilter"), find_biggest_only(false), output_file_prefix("working/models"), statistics_file(""), seed(9)
+	mace_filter("isofilter"), find_biggest_only(false), output_file_prefix("working/models"), statistics_file(""), seed(9),
+	interpretation_file_name(""), max_random_level(1)
 {
 	for(int idx=1; idx < argc; idx++) {
 		char opt = argv[idx][0];
@@ -52,6 +53,12 @@ ArgumentParser::ArgumentParser(int argc, char* argv[]):
 			break;
 		case arg_initial_random_seed:
 			seed = atoi(&argv[idx][2]);
+			break;
+		case arg_interpretation_file_name:
+			interpretation_file_name = std::string(argv[idx]).substr(2);
+			break;
+		case arg_max_random_level:
+			max_random_level = atoi(&argv[idx][2]);
 			break;
 		default:
 			std::cerr << "Error: Invalid option " << argv[idx] << " ignored." << std::endl;
@@ -95,6 +102,8 @@ ArgumentParser::find_int_arg(char arg, bool& found) const
 		return num_random;
 	case arg_initial_random_seed:
 		return seed;
+	case arg_max_random_level:
+		return max_random_level;
 	}
 	found = false;
 	return -1;
@@ -111,6 +120,8 @@ ArgumentParser::find_string_arg(char arg, bool& found) const
 		return output_file_prefix;
 	case arg_statistics_file:
 		return statistics_file;
+	case arg_interpretation_file_name:
+		return interpretation_file_name;
 	}
 	found = false;
 	return "";
