@@ -84,47 +84,45 @@ int main(int argc, char* argv[])
 	std::vector<std::string> models;
 
 	InvariantsStore inv_store(domain_size, Buckets::max_num_functions, input_num_random, argParser.max_sample_size);
-	int num_models = 3000000;
+	int num_models = 0;
 	int num_models_processed = Buckets::calc_all_invariants(in_file, domain_size, num_models, argParser.seed, num_random,
 			argParser.max_sample_size, argParser.sampling_frequency, random_invariants, trees, op_type, op_sym, all_inv_vec,
 			all_mt, all_bin_function_mt, all_bin_relation_mt, bin_function_op_sym, bin_relation_op_sym, models, inv_store);
 
-	std::cerr << "(Sampling) Number of models processed: " << num_models_processed << std::endl;
+std::cerr << "************Number of (Sampling) models processed: " << num_models_processed << std::endl;
 	int num_ops = op_sym.size();
 	std::vector<int> random_list;
 
 	int start_time_best_random = Utils::get_wall_time();
 	Buckets::find_best_random_invariants(argParser.max_random_level, domain_size, num_models_processed, num_ops, combo_inv_vec, num_random, random_list, inv_store);
-	std::cerr << "Time to find best random invariants " << Utils::get_wall_time() - start_time_best_random << "\n" << std::endl;
+std::cerr << "************Time to find best random invariants " << Utils::get_wall_time() - start_time_best_random << "\n" << std::endl;
 	// return EXIT_SUCCESS;
 	/* Calculations using full set of interpretations and the best subset of random invariants
 	 */
 	int calc_selected_random_start = Utils::get_wall_time();
-	inv_store.reset_storage();
-	num_models_processed = Buckets::calc_selected_invariants(in_file, domain_size, num_models, random_list,
-			random_invariants, trees, op_type, op_sym, all_inv_vec,
-			all_mt, all_bin_function_mt, all_bin_relation_mt, models, inv_store);
-	std::cerr << "Time to calculate invariants including selected random variants " << Utils::get_wall_time() - calc_selected_random_start << std::endl;
-	std::cerr << "Full number of models processed: " << num_models_processed << std::endl;
-
 	std::vector<std::vector<std::string>> interps;  // stores all interpretations
-	interps.reserve(num_models_processed);
-	random_invariants.resize(random_list.size());
+	interps.reserve(num_models);
 
-	Buckets::build_buckets(domain_size, num_models_processed, num_ops, combo_inv_vec, random_list, models, inv_store, interps);
+	random_invariants.resize(random_list.size());
+	num_models_processed = Buckets::calc_selected_invariants(in_file, domain_size, num_models, random_list,
+			random_invariants, trees, op_type, op_sym, all_inv_vec, combo_inv_vec,
+			all_mt, all_bin_function_mt, all_bin_relation_mt, models, interps);
 
 	double inv_calc_time = Utils::get_wall_time() - start_time;
 	int    num_buckets = interps.size();
-	std::cerr << "Actual number of random invariant: " << random_list.size() << std::endl;
-	std::cerr << "Number of buckets: " << num_buckets << std::endl;
-	std::cerr << "Time for calculating invariants: " << inv_calc_time << "\n" << std::endl;
-	return EXIT_SUCCESS;
+std::cerr << "************Time to calculate invariants including selected random variants " << Utils::get_wall_time() - calc_selected_random_start << std::endl;
+std::cerr << "************Full number of models processed: " << num_models_processed << std::endl;
+std::cerr << "************Actual number of random invariant: " << random_list.size() << std::endl;
+std::cerr << "************Number of buckets: " << num_buckets << std::endl;
+std::cerr << "************Time for calculating invariants: " << inv_calc_time << "\n" << std::endl;
+	// return EXIT_SUCCESS;
 
 	double max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,
 			argParser.mace_filter, argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
 
 	double total_run_time = Utils::get_wall_time() - start_time;
-	Utils::save_statistics(argParser.statistics_file, num_buckets, num_models, argParser.sampling_frequency, input_num_random, inv_calc_time, total_run_time, max_time);
+	Utils::save_statistics(argParser.statistics_file, num_buckets, num_models, num_ops,
+			argParser.sampling_frequency, random_list.size(), inv_calc_time, total_run_time, max_time);
 
 	return EXIT_SUCCESS;
 }

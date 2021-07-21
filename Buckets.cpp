@@ -66,18 +66,22 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 
 /*
  * This is for computing all invariants: basic invariants and the subset of best random invariants,
- * and save into InvariantsStore
+ * no need to save the invariants
  */
 int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int& num_models, std::vector<int>& random_list,
 		std::vector<int*>& random_invariants, std::vector<Tree>& trees,
-		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
+		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
-		std::vector<std::string>& models, InvariantsStore& inv_store)
+		std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
 	RandomInvariants  ri_gen = RandomInvariants();
+	std::unordered_map<std::string, int> buckets;
 	num_models = -1;
+	std::string key;
+	int next_key = 0;
+	int num_random = random_list.size();
 	std::ifstream is;
 	is.open(in_file);
 	while (is) {
@@ -87,9 +91,28 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 			continue;
 		ri_gen.calc_random_invariants(domain_size, random_list, trees, all_bin_function_mt, random_invariants);
 
+		int invaraints_length = num_ops * Invariant::invariant_size + num_random;
         Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
-        inv_store.save_invariants(num_ops, all_inv_vec, random_invariants);
-        models.push_back(ss.str());
+        int** inv_vec = all_inv_vec[num_ops];
+        for (int idx = 0; idx < num_random; idx++) {
+        	int* inv = random_invariants[idx];
+        	for (int jdx = 0; jdx < domain_size; jdx++)
+        		inv_vec[jdx][idx] = inv[jdx];
+        }
+		Invariant::sort_invariant_vec(domain_size, invaraints_length, combo_inv_vec);
+		Invariant::hash_key(domain_size, invaraints_length, combo_inv_vec, key);
+
+		int compact_key;  // simple integer instead of a lengthy string as key
+		if (buckets.find(key) != buckets.end()) {
+			compact_key = buckets[key];
+		}
+		else {
+			compact_key = next_key;
+			next_key++;
+			buckets[key] = compact_key;
+			interps.push_back(std::vector<std::string>());
+		}
+		interps[compact_key].push_back(ss.str());
 		ss.str("");
         num_models_processed++;
 	}
@@ -195,8 +218,10 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, int num
 		visited[best_invariant] = 1;
 	}
 	while (best_invariant > -1 && level < max_level - 1 && level < num_random - 1);
-	level--;
-	random_list.pop_back();
+	if (best_invariant < 0) {
+		level--;
+		random_list.pop_back();
+	}
 
 	return level;
 }
@@ -266,7 +291,7 @@ int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, 
  * This is for finding all buckets without random invariants
  */
 int Buckets::bucketing(std::string& in_file, int domain_size, std::vector<int**>& all_mt, int* combo_inv_vec[],
-		std::vector<int**>& all_inv_vec, std::vector<std::vector<std::string>>& interps)
+		std::vector<int**>& all_inv_vec, int& num_ops, std::vector<std::vector<std::string>>& interps)
 {
 	int num_models = -1;
 	std::stringstream ss;
@@ -279,7 +304,7 @@ int Buckets::bucketing(std::string& in_file, int domain_size, std::vector<int**>
 	is.open(in_file);
 	while (is) {
 		num_models++;
-		int num_ops = Interpretation::parse_interpretation(is, domain_size, all_mt, ss, op_type, op_sym);
+		num_ops = Interpretation::parse_interpretation(is, domain_size, all_mt, ss, op_type, op_sym);
 		if (num_ops <= 0)
 			continue;
 

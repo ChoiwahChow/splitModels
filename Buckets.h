@@ -21,7 +21,7 @@ public:
 	virtual ~Buckets();
 
 	static int bucketing(std::string& in_file, int domain_size, std::vector<int**>& all_mt, int* combo_inv_vec[],
-			std::vector<int**>& all_inv_vec, std::vector<std::vector<std::string>>& interps);
+			std::vector<int**>& all_inv_vec, int& num_ops, std::vector<std::vector<std::string>>& interps);
 
 	static int calc_all_invariants(std::string& is, int domain_size, int& num_models, int starting_seed, int& num_random,
 			int max_sample_size, int sampling_frequency, std::vector<int*>& random_invariants, std::vector<Tree>& trees,
@@ -47,9 +47,9 @@ public:
 
 	static int calc_selected_invariants(std::string& is, int domain_size, int& num_models, std::vector<int>& random_list,
 			std::vector<int*>& random_invariants, std::vector<Tree>& trees,
-			std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
+			std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 			std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
-			std::vector<std::string>& models, InvariantsStore& inv_store);
+			std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps);
 };
 
 #endif /* BUCKETS_H_ */

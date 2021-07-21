@@ -61,7 +61,7 @@ int Interpretation::parse_interpretation(std::istream& is, int domain_size, std:
 	int  row = 0;
 	bool done = false;
 	int  num_ops = 0;
-	int**  mt;
+	int**  mt = all_mt[num_ops];
 	bool extract_sym = op_sym.size() == 0;
 	while (is && !done) {
 		std::getline(is, line);

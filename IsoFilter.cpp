@@ -58,7 +58,9 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 			std::string command("cat " + filename + " | " + mace_filter.c_str() + " >> " + filename + ".f ");
 			if (num_file % 5 != 0 && idx < interps.size() - 1 && multiprocessing_on)
 				command += " &";
-			std::system(command.c_str());
+			int status = std::system(command.c_str());
+			if (status != 0)
+				std::cerr << "Error code in system call to spawn off process to filter out iso models from buckets." << std::endl;
 			if (idx < interps.size() - 1) {
 				if (multiprocessing_on)
 					++num_file;
