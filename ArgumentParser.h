@@ -25,6 +25,7 @@ public:
 	static const char arg_initial_random_seed = 'e';
 	static const char arg_interpretation_file_name = 'i';
 	static const char arg_max_random_level = 'l';
+	static const char arg_no_basic_invariants = 'n';
 public:
 	int           domain_size;
 	int           min_models_in_file;
@@ -39,6 +40,7 @@ public:
 	int           seed;
 	std::string   interpretation_file_name;
 	int           max_random_level;
+	bool          no_basic_invariants;
 
 public:
 	ArgumentParser(int argc, char* argv[]);

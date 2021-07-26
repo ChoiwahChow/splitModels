@@ -12,7 +12,7 @@
 ArgumentParser::ArgumentParser(int argc, char* argv[]):
 	domain_size(-1), min_models_in_file(1), sampling_frequency(1), max_sample_size(1000000), num_random(0), multiprocessing_on(false),
 	mace_filter("isofilter"), find_biggest_only(false), output_file_prefix("working/models"), statistics_file(""), seed(9),
-	interpretation_file_name(""), max_random_level(1)
+	interpretation_file_name(""), max_random_level(1), no_basic_invariants(false)
 {
 	for(int idx=1; idx < argc; idx++) {
 		char opt = argv[idx][0];
@@ -60,6 +60,9 @@ ArgumentParser::ArgumentParser(int argc, char* argv[]):
 		case arg_max_random_level:
 			max_random_level = atoi(&argv[idx][2]);
 			break;
+		case arg_no_basic_invariants:
+			no_basic_invariants = true;
+			break;
 		default:
 			std::cerr << "Error: Invalid option " << argv[idx] << " ignored." << std::endl;
 		}
@@ -75,10 +78,14 @@ ArgumentParser::find_bool_arg(char arg, bool& found) const
 {
 
 	found = true;
-	if (arg == arg_multiprocessing_on)
+	switch (arg) {
+	case arg_multiprocessing_on:
 		return multiprocessing_on;
-	else if (arg == arg_find_biggest_only)
+	case arg_find_biggest_only:
 		return find_biggest_only;
+	case arg_no_basic_invariants:
+		return no_basic_invariants;
+	}
 	found = false;
 	return false;
 }

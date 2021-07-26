@@ -59,7 +59,7 @@ int Invariant::count_non_zero(int s, const int vec[])
 }
 
 
-void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_vec)
+void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Special case:
@@ -74,6 +74,9 @@ void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_v
 		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
 
+	if (no_calc)
+		return;
+
 	int i_no = 0;
 	/* Invariant 1:
 	 * For each domain element x, number of times it appears in the multiplication table
@@ -84,7 +87,7 @@ void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_v
 }
 
 
-void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec)
+void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a unary function
@@ -96,6 +99,9 @@ void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec
 	for (int idx = 0; idx < domain_size; ++idx) {
 		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
+
+	if (no_calc)
+		return;
 
 	int i_no = 0;
 	/* Invariant 1: idempotency
@@ -137,7 +143,7 @@ void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec
 }
 
 
-void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv_vec)
+void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a binary relation
@@ -148,6 +154,9 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 	for (int idx = 0; idx < domain_size; ++idx) {
 		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
+
+	if (no_calc)
+		return;
 
 	int i_no = 0;
 	/* Invariant 1: relatedness
@@ -192,7 +201,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 }
 
 
-void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
+void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a binary function
@@ -200,14 +209,17 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 	 * The invariants (up to invariant_size of them) for each element is a row in inv_vec (1-d array of domain_size pointers)
 	 * That is, each column in inv_vec is the same invariant for each element.
 	 */
+	for (int idx = 0; idx < domain_size; ++idx) {
+		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
+	}
+
+	if (no_calc)
+		return;
+
 	int elementSquared[domain_size];
 
 	for (int idx = 0; idx < domain_size; ++idx) {
 		elementSquared[idx] = mt[idx][idx];
-	}
-
-	for (int idx = 0; idx < domain_size; ++idx) {
-		std::fill(inv_vec[idx], inv_vec[idx]+invariant_size, 0);
 	}
 
 	int i_no = 0;
@@ -334,20 +346,20 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec)
 }
 
 void Invariant::calc_invariant_vec(int domain_size, int num_ops, std::vector<int**>& all_mt,
-		std::vector<int**>& all_inv_vec, std::vector<int>& op_type, std::vector<std::string>& op_sym)
+		std::vector<int**>& all_inv_vec, std::vector<int>& op_type, std::vector<std::string>& op_sym, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for each domain element based on the multiplication table
 	 */
 	for (int op = 0; op < num_ops; ++op) {
 		if (op_type[op] == InterpretationType::unary_function)
-			calc_unary_invariant_vec(domain_size, all_mt[op][0], all_inv_vec[op]);
+			calc_unary_invariant_vec(domain_size, all_mt[op][0], all_inv_vec[op], no_calc);
 		else if (op_type[op] == InterpretationType::ternary_function)
-			calc_ternary_invariant_vec(domain_size, all_mt[op][0], all_inv_vec[op]);
+			calc_ternary_invariant_vec(domain_size, all_mt[op][0], all_inv_vec[op], no_calc);
 		else if( op_type[op] == InterpretationType::function) // function
-			calc_invariant_vec(domain_size, all_mt[op], all_inv_vec[op]);
+			calc_invariant_vec(domain_size, all_mt[op], all_inv_vec[op], no_calc);
 		else {
-			calc_relation_invariant_vec(domain_size, all_mt[op], all_inv_vec[op]);
+			calc_relation_invariant_vec(domain_size, all_mt[op], all_inv_vec[op], no_calc);
 		}
 	}
 }

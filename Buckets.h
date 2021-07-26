@@ -15,7 +15,7 @@
 
 class Buckets {
 public:
-	static const unsigned int max_num_functions = 8;
+	static const unsigned int max_num_functions = 10;
 
 	Buckets();
 	virtual ~Buckets();
@@ -28,7 +28,7 @@ public:
 			std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
 			std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
 			std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
-			std::vector<std::string>& models, InvariantsStore& inv_store);
+			std::vector<std::string>& models, InvariantsStore& inv_store, bool no_basic_invariants = false);
 
 	static int  build_buckets(int domain_size, int num_models, int num_ops, int* combo_inv_vec[], const std::vector<int>& random_list,
 			std::vector<std::string>& models, InvariantsStore& inv_store, std::vector<std::vector<std::string>>& interps);
@@ -49,7 +49,7 @@ public:
 			std::vector<int*>& random_invariants, std::vector<Tree>& trees,
 			std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 			std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
-			std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps);
+			std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps, bool no_basic_invariants = false);
 };
 
 #endif /* BUCKETS_H_ */

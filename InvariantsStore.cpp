@@ -16,7 +16,6 @@ InvariantsStore::InvariantsStore(int ds, int no, int n_random, int nm):
 {
 	invariant_vecs = new int[num_models * model_size];
 	std::fill(invariant_vecs, invariant_vecs+(num_models * model_size), 0);
-	std::cerr << "*******************store**" << num_models * model_size * sizeof(int) /1000000.0 << " Mb." << std::endl;
 }
 
 /*

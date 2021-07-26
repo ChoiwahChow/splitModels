@@ -56,7 +56,7 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 			counter = 0;
 			ofs.close();
 			std::string command("cat " + filename + " | " + mace_filter.c_str() + " >> " + filename + ".f ");
-			if (num_file % 5 != 0 && idx < interps.size() - 1 && multiprocessing_on)
+			if (multiprocessing_on && num_file % 5 != 0 && idx < interps.size() - 1)
 				command += " &";
 			int status = std::system(command.c_str());
 			if (status != 0)

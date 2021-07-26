@@ -32,7 +32,7 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
 		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
 		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
-		std::vector<std::string>& models, InvariantsStore& inv_store)
+		std::vector<std::string>& models, InvariantsStore& inv_store, bool no_basic_invariants)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
@@ -51,13 +51,13 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 					bin_function_op_sym, bin_relation_op_sym, random_invariants);
 		ri_gen.calc_random_invariants(domain_size, num_random, trees, all_bin_function_mt, random_invariants);
 
-        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
+        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym, no_basic_invariants);
         inv_store.save_invariants(num_ops, all_inv_vec, random_invariants);
         models.push_back(ss.str());
 		ss.str("");
         num_models_processed++;
         if( (size_t)num_ops != op_sym.size())
-        	std::cerr << "***********************************************" << std::endl;
+        	std::cerr << "*********************************************** num_ops != op_sym.size " << num_ops << std::endl;
 	}
 	is.close();
 	return num_models_processed;
@@ -72,7 +72,7 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 		std::vector<int*>& random_invariants, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
-		std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps)
+		std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
@@ -92,7 +92,9 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 		ri_gen.calc_random_invariants(domain_size, random_list, trees, all_bin_function_mt, random_invariants);
 
 		int invaraints_length = num_ops * Invariant::invariant_size + num_random;
-        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
+
+        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym, no_basic_invariants);
+
         int** inv_vec = all_inv_vec[num_ops];
         for (int idx = 0; idx < num_random; idx++) {
         	int* inv = random_invariants[idx];
@@ -128,7 +130,6 @@ int Buckets::build_buckets(int domain_size, int num_models, int num_ops, int* co
 		std::vector<std::string>& models, InvariantsStore& inv_store, std::vector<std::vector<std::string>>& interps)
 {
 	int invariants_length = num_ops * Invariant::invariant_size + random_list.size();
-	std::cerr << "**********build invariants_length " << invariants_length << std::endl;
 	std::string key;
 	int next_key = 0;
 	std::unordered_map<std::string, int> buckets;

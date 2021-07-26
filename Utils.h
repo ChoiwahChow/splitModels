@@ -16,9 +16,9 @@ public:
 	virtual ~Utils();
 
 	static double get_wall_time();
-	static void   save_statistics(const std::string& file_path, int num_buckets, int num_models, int num_ops,
-			int sampling_frequency, int num_random, double inv_calc_time, double total_run_time, double max_time);
-	static void   save_statistics(const std::string& file_path, int num_buckets, int num_models, int num_ops,
+	static void   save_statistics(const std::string& file_path, int num_blocks, int num_models, int num_ops,
+			int sampling_frequency, int num_random_used, double inv_calc_time, double total_run_time, double max_time);
+	static void   save_statistics(const std::string& file_path, int num_blocks, int num_models, int num_ops,
 			double inv_calc_time, double total_run_time, double max_time);
 };
 
