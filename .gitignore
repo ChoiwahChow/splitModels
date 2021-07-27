@@ -38,3 +38,5 @@
 # input files
 inputs/
 working/
+
+.pydevproject

@@ -30,7 +30,7 @@ Buckets::~Buckets() {
 int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num_models, int starting_seed, int& num_random,
 		int max_sample_size, int sampling_frequency, std::vector<int*>& random_invariants, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
-		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
+		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
 		std::vector<std::string>& models, InvariantsStore& inv_store, bool no_basic_invariants)
 {
@@ -57,7 +57,7 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 		ss.str("");
         num_models_processed++;
         if( (size_t)num_ops != op_sym.size())
-        	std::cerr << "*********************************************** num_ops != op_sym.size " << num_ops << std::endl;
+        	std::cerr << "Error: ******************************** num_ops != op_sym.size " << num_ops << std::endl;
 	}
 	is.close();
 	return num_models_processed;
@@ -71,7 +71,7 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int& num_models, std::vector<int>& random_list,
 		std::vector<int*>& random_invariants, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
-		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
+		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
 {
 	std::stringstream ss;
@@ -235,7 +235,7 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, int num
 int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, int starting_seed, int& num_random,
 		int max_sample_size, int sampling_frequency, std::vector<int*>& random_invariants, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
-		std::vector<int**>& all_mt, std::vector<int**>& all_bin_function_mt, std::vector<int**>& all_bin_relation_mt,
+		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym, std::vector<std::vector<std::string>>& interps)
 {
 	std::stringstream ss;
@@ -291,7 +291,7 @@ int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, 
 /*
  * This is for finding all buckets without random invariants
  */
-int Buckets::bucketing(std::string& in_file, int domain_size, std::vector<int**>& all_mt, int* combo_inv_vec[],
+int Buckets::bucketing(std::string& in_file, int domain_size, std::vector<std::vector<std::vector<int>>>& all_mt, int* combo_inv_vec[],
 		std::vector<int**>& all_inv_vec, int& num_ops, std::vector<std::vector<std::string>>& interps)
 {
 	int num_models = -1;

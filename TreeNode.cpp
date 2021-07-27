@@ -58,13 +58,13 @@ Tree::Tree(unsigned int depth, unsigned int num_labels):
 {
 }
 
-void Tree::initialize(std::vector<int**>& all_mt, std::vector<std::string>& op_sym,
-		std::vector<int**>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed)
+void Tree::initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
+		std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed)
 {
 	all_op_nodes = std::vector<OpNode>(op_node_size);
 	all_value_nodes = std::vector<ValueNode>(value_node_size);
 	srand(seed);
-	build_tree_structure(all_mt, op_sym, all_bin_relation_mt, bin_relation_op_sym);
+	build_tree_structure(all_mt, all_bin_function_mt, op_sym, all_bin_relation_mt, bin_relation_op_sym);
 }
 
 ValueNode* Tree::build_value_node()
@@ -76,15 +76,16 @@ ValueNode* Tree::build_value_node()
 	return v_node;
 }
 
-OpNode* Tree::build_op_node(int** mt, std::string& op_sym)
+OpNode* Tree::build_op_node(std::vector<std::vector<int>>& mt, std::string& op_sym)
 {
 	OpNode* v_node = &all_op_nodes[avail_op_node_pos++];
-	v_node->set_op(mt);
+	v_node->set_op(&mt);
 	v_node->set_sym(op_sym);
 	return v_node;
 }
 
-void Tree::build_node(TreeNode** node, unsigned int level, std::vector<int**>& all_mt, std::vector<std::string>& op_sym, bool top_is_op)
+void Tree::build_node(TreeNode** node, unsigned int level, std::vector<std::vector<std::vector<int>>>& all_mt,
+		std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym, bool top_is_op)
 {
 	bool is_value_node = !top_is_op && (level == depth || rand() % 2 == 0);
 	if (is_value_node) {
@@ -92,23 +93,23 @@ void Tree::build_node(TreeNode** node, unsigned int level, std::vector<int**>& a
 	}
 	else {
 		int which_op = rand() % op_sym.size();
-		*node = build_op_node(all_mt[which_op], op_sym[which_op]);
-		build_node(&(*node)->left, level+1, all_mt, op_sym);
-		build_node(&(*node)->right, level+1, all_mt, op_sym);
+		*node = build_op_node(all_mt[all_bin_function_mt[which_op]], op_sym[which_op]);
+		build_node(&(*node)->left, level+1, all_mt, all_bin_function_mt, op_sym);
+		build_node(&(*node)->right, level+1, all_mt, all_bin_function_mt, op_sym);
 	}
 }
 
-void Tree::build_tree_structure(std::vector<int**>& all_mt, std::vector<std::string>& op_sym,
-		std::vector<int**>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym)
+void Tree::build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt,
+		std::vector<std::string>& op_sym, std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym)
 {
 	label_in_use = std::vector<int>(num_labels, 0);
-	build_node(&left, 1, all_mt, op_sym, true);
-	build_node(&right, 1, all_mt, op_sym);
+	build_node(&left, 1, all_mt, all_bin_function_mt, op_sym, true);
+	build_node(&right, 1, all_mt, all_bin_function_mt, op_sym);
 	if (all_bin_relation_mt.size() > 0) {
 		if (rand() % 2 == 0) {
 			int x = rand() % all_bin_relation_mt.size();
 			sym = bin_relation_op_sym[x];
-			op = all_bin_relation_mt[x];
+			op = &all_mt[all_bin_relation_mt[x]];
 		}
 	}
 /*
@@ -140,7 +141,7 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 			values[pos0] = el;
 			int left_value = left->eval_node(values);
 			int right_value = right->eval_node(values);
-			if ((op != nullptr && op[left_value][right_value]) ||
+			if ((op != nullptr && (*op)[left_value][right_value]) ||
 					(op == nullptr && left_value == right_value)) {
 				invariants[el] +=1;
 			}
@@ -154,7 +155,7 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 				values[pos1] = jdx;
 				int left_value = left->eval_node(values);
 				int right_value = right->eval_node(values);
-				if ((op != nullptr && op[left_value][right_value]) ||
+				if ((op != nullptr && (*op)[left_value][right_value]) ||
 						(op == nullptr && left_value == right_value)) {
 					invariants[el] +=1;
 				}
@@ -172,7 +173,7 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 					values[pos2] = kdx;
 					int left_value = left->eval_node(values);
 					int right_value = right->eval_node(values);
-					if ((op != nullptr && op[left_value][right_value]) ||
+					if ((op != nullptr && (*op)[left_value][right_value]) ||
 							(op == nullptr && left_value == right_value)) {
 						invariants[el] +=1;
 					}
@@ -184,11 +185,16 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 	//print_invariants(domain_size);
 }
 
-int OpNode::eval_node(std::vector<int> values)
+int ValueNode::eval_node(std::vector<int>& labels)
+{
+	return labels[value];
+}
+
+int OpNode::eval_node(std::vector<int>& values)
 {
 	int left_value  = left->eval_node(values);
 	int right_value = right->eval_node(values);
-	return op[left_value][right_value];
+	return (*op)[left_value][right_value];
 }
 
 void Tree::print_invariants(unsigned int domain_size) const
@@ -198,7 +204,6 @@ void Tree::print_invariants(unsigned int domain_size) const
 	}
 	std::cerr << std::endl;
 }
-
 
 Tree::~Tree() {
 

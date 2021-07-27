@@ -34,11 +34,15 @@ double Utils::get_wall_time()
 void Utils::save_statistics(const std::string& file_path, int num_blocks, int num_models, int num_ops, int sampling_frequency,
 		int num_random_used, double inv_calc_time, double total_run_time, double max_time)
 {
-	std::cerr << "Number of models: " << num_models << ", sampling frequency: " << sampling_frequency << std::endl;
+	std::cerr << "Number of models: " << num_models;
+	if (sampling_frequency > 0)
+		std::cerr << ", sampling frequency: " << sampling_frequency;
+	std::cerr << std::endl;
 	std::cerr << "Number of operations: " << num_ops << "," << std::endl;
 	std::cerr << "Number of blocks: " << num_blocks << " in " << inv_calc_time << " seconds." << std::endl;
 	if (num_random_used >= 0)
 		std::cerr << "Number of random invariants: " << num_random_used << std::endl;
+	std::cerr << "Time for calculating invariants: " << inv_calc_time << std::endl;
 	std::cerr << "Maximum Processing time " << max_time << std::endl;
 	std::cerr << "Total run time: " << total_run_time << std::endl;
 

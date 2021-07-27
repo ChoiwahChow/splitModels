@@ -32,6 +32,23 @@ struct VecComparator
 };
 
 
+int Invariant::find_num_unique_el(const std::vector<int>& vec)
+{
+	/* find number of unique elements in a vector/array */
+	int s = vec.size();
+	int buf[s];
+	std::fill(buf, buf+s, 0);
+	int sum = 0;
+	for (int idx = 0; idx < s; ++idx) {
+		if (buf[vec[idx]] == 0) {
+			buf[vec[idx]] = 1;
+			++sum;
+		}
+	}
+	return sum;
+}
+
+
 int Invariant::find_num_unique_el(int s, const int* vec)
 {
 	/* find number of unique elements in a vector/array */
@@ -59,7 +76,7 @@ int Invariant::count_non_zero(int s, const int vec[])
 }
 
 
-void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_vec, bool no_calc)
+void Invariant::calc_ternary_invariant_vec(int domain_size, const std::vector<int>& mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Special case:
@@ -87,7 +104,7 @@ void Invariant::calc_ternary_invariant_vec(int domain_size, int* mt, int** inv_v
 }
 
 
-void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec, bool no_calc)
+void Invariant::calc_unary_invariant_vec(int domain_size, const std::vector<int>& mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a unary function
@@ -143,7 +160,7 @@ void Invariant::calc_unary_invariant_vec(int domain_size, int* mt, int** inv_vec
 }
 
 
-void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv_vec, bool no_calc)
+void Invariant::calc_relation_invariant_vec(int domain_size, const std::vector<std::vector<int>>& mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a binary relation
@@ -201,7 +218,7 @@ void Invariant::calc_relation_invariant_vec(int domain_size, int** mt, int** inv
 }
 
 
-void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec, bool no_calc)
+void Invariant::calc_invariant_vec(int domain_size, const std::vector<std::vector<int>>& mt, int** inv_vec, bool no_calc)
 {
 	/*
 	 * Calculate the invariant vector for a binary function
@@ -258,7 +275,7 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec, boo
 	 * Number of distinct elements on a row
 	 */
 	for (int el = 0; el < domain_size; ++el)
-		inv_vec[el][i_no] = find_num_unique_el(domain_size, mt[el]);
+		inv_vec[el][i_no] = find_num_unique_el(mt[el]);
 
 	++i_no;
 	/* Invariant 6: distinct column elements
@@ -345,7 +362,7 @@ void Invariant::calc_invariant_vec(int domain_size, int** mt, int** inv_vec, boo
 		inv_vec[el][i_no] = count_non_zero(domain_size, vec_list[el]);
 }
 
-void Invariant::calc_invariant_vec(int domain_size, int num_ops, std::vector<int**>& all_mt,
+void Invariant::calc_invariant_vec(int domain_size, int num_ops, std::vector<std::vector<std::vector<int>>>& all_mt,
 		std::vector<int**>& all_inv_vec, std::vector<int>& op_type, std::vector<std::string>& op_sym, bool no_calc)
 {
 	/*

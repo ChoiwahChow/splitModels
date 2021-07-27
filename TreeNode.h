@@ -31,7 +31,7 @@ public:
 
 	virtual void to_string(std::ostream& out, bool paran = true) const;
 	virtual NodeType getNodeType() = 0;
-	virtual int eval_node(std::vector<int> labels) = 0;
+	virtual int eval_node(std::vector<int>& labels) = 0;
 
 	friend class Tree;
 };
@@ -48,13 +48,13 @@ public:
 	virtual void to_string(std::ostream& out, bool paran = true) const;
 	int  get_value() {return value;};
 	void set_value(int value) {this->value = value;};
-	virtual int eval_node(std::vector<int> labels) {return labels[value];};
+	virtual int eval_node(std::vector<int>& labels);
 };
 
 
 class OpNode: public TreeNode {
 private:
-	int**         op;
+	std::vector<std::vector<int>>*    op;
 	std::string   sym;
 public:
 	OpNode(): op(nullptr), sym("*") {};
@@ -62,10 +62,10 @@ public:
 
 	virtual NodeType getNodeType() { return NodeType::op;}
 	virtual void to_string(std::ostream& out, bool paran = true) const;
-	int** get_op() {return op;};
-	void  set_op(int** op) {this->op = op;};
+	std::vector<std::vector<int>>* get_op() {return op;};
+	void  set_op(std::vector<std::vector<int>>* op) {this->op = op;};
 	void  set_sym(std::string& sym) {this->sym = sym;};
-	virtual int eval_node(std::vector<int> labels);
+	virtual int eval_node(std::vector<int>& labels);
 };
 
 
@@ -76,7 +76,7 @@ private:
 	static const int default_max_depth = 4;   // starts from 1
 	static const int default_num_labels = 2;
 	static const int max_domain_size = 64;
-	int**         op;
+	std::vector<std::vector<int>>*         op;
 	std::string   sym;
 	std::vector<OpNode>    all_op_nodes;
 	std::vector<ValueNode> all_value_nodes;
@@ -104,12 +104,13 @@ public:
 
 	void clear_memory();
 	ValueNode* build_value_node();
-	OpNode*    build_op_node(int** mt, std::string& op_sym);
-	void build_node(TreeNode** node, unsigned int level, std::vector<int**>& all_mt, std::vector<std::string>& op_sym, bool top_is_op = false);
-	void build_tree_structure(std::vector<int**>& all_mt, std::vector<std::string>& op_sym,
-			std::vector<int**>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym);
-	void initialize(std::vector<int**>& all_mt, std::vector<std::string>& op_sym,
-			std::vector<int**>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed);
+	OpNode*    build_op_node(std::vector<std::vector<int>>& mt, std::string& op_sym);
+	void build_node(TreeNode** node, unsigned int level, std::vector<std::vector<std::vector<int>>>& all_mt,
+			std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym, bool top_is_op = false);
+	void build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
+			std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym);
+	void initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
+			std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed);
 	void calc_invariant_vector(unsigned int domain_size);
 	int* get_invariants() {return invariants;};
 	void print_invariants(unsigned int domain_size) const;

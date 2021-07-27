@@ -28,9 +28,11 @@ public:
 	static const std::string closing;
 	static const std::string nested_closing;
 
-	static void parse_row(const std::string& line, int* vec);
-	static void count_appearances(const std::string& line, int* vec);
-	static int  parse_interpretation(std::istream& is, int domain_size, std::vector<int**>& all_mt,
+	static std::vector<std::vector<int>> construct_1row_mt(int domain_size);
+	static std::vector<std::vector<int>> construct_2d_mt(int domain_size);
+	static void parse_row(const std::string& line, std::vector<int>& row);
+	static void count_appearances(const std::string& line, std::vector<int>& row);
+	static int  parse_interpretation(std::istream& is, int domain_size, std::vector<std::vector<std::vector<int>>>& all_mt,
 			std::stringstream& ss, std::vector<int>& op_type, std::vector<std::string>& op_sym, bool extract = true);
 };
 

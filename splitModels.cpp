@@ -51,20 +51,17 @@ int main(int argc, char* argv[])
 	/* set up buffer spaces for multiplication tables in a std::vector and invariant vectors in std::vector.
 	 * Allow for max_num_functions for each of multiplication tables and invariant vectors.
 	 */
+	std::vector<std::vector<std::vector<int>>>  all_mt;
+
 	int  inv_vec_buf[domain_size][Invariant::invariant_size*Buckets::max_num_functions+input_num_random];
 	int* inv_vec[domain_size*Buckets::max_num_functions+1];  // each binary function occupies domain_size contiguous slots, last "1" for random invariants
-	int  mt_buf[domain_size*Buckets::max_num_functions][domain_size];
-	int* mt[domain_size*Buckets::max_num_functions];
-	std::vector<int**> all_mt;      // each binary function occupies one slot in this vector
 	std::vector<int**> all_inv_vec; // each binary function occupies one slot in this vector
 	int* combo_inv_vec[domain_size];
 
 	for (unsigned int idx = 0; idx < Buckets::max_num_functions; ++idx) {
 		for (int jdx = 0; jdx < domain_size; ++jdx) {
 			inv_vec[idx*domain_size+jdx] = &inv_vec_buf[jdx][idx*Invariant::invariant_size];
-			mt[idx*domain_size+jdx] = reinterpret_cast<int*>(&mt_buf[idx*domain_size+jdx]);
 		}
-		all_mt.push_back(&mt[idx*domain_size]);
 		all_inv_vec.push_back(&inv_vec[idx*domain_size]);  // each element of all_inv_vec points to an array of size domain elements
 	}
 	for (int idx = 0; idx < domain_size; ++idx)
@@ -72,18 +69,19 @@ int main(int argc, char* argv[])
 
 	/* Calculations using samples of interpretations and all random invariants to find the best subset of randome invariants
 	 */
-	std::vector<int> op_type(Buckets::max_num_functions);
+	std::vector<int> op_type;
 	std::vector<std::string> op_sym;
 
 	std::vector<Tree> trees(input_num_random);
 	std::vector<int*> random_invariants(input_num_random); // each points to an array of size domain_size, one invariant for each domain element in this array
-	std::vector<int**> all_bin_function_mt;
+	std::vector<int> all_bin_function_mt;
 	std::vector<std::string> bin_function_op_sym;
-	std::vector<int**> all_bin_relation_mt;
+	std::vector<int> all_bin_relation_mt;
 	std::vector<std::string> bin_relation_op_sym;
 	std::vector<std::string> models;
 
 	InvariantsStore inv_store(domain_size, Buckets::max_num_functions, input_num_random, argParser.max_sample_size);
+
 	int num_models = 0;
 	int num_models_processed = Buckets::calc_all_invariants(in_file, domain_size, num_models, argParser.seed, num_random,
 			argParser.max_sample_size, argParser.sampling_frequency, random_invariants, trees, op_type, op_sym, all_inv_vec,
