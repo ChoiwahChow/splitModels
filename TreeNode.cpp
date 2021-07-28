@@ -65,6 +65,8 @@ void Tree::initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::v
 	all_value_nodes = std::vector<ValueNode>(value_node_size);
 	srand(seed);
 	build_tree_structure(all_mt, all_bin_function_mt, op_sym, all_bin_relation_mt, bin_relation_op_sym);
+	int domain_size = all_mt[0][0].size();
+	invariants.resize(domain_size, 0); // TODO: check, perhaps domain_size is needed.
 }
 
 ValueNode* Tree::build_value_node()
@@ -134,7 +136,7 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 
 	std::vector<int> values(domain_size, 0);
 	int num_label_in_use = std::accumulate(label_in_use.begin(), label_in_use.end(), decltype(label_in_use)::value_type(0));
-	std::fill(invariants, invariants+domain_size, 0);
+	std::fill(invariants.begin(), invariants.end(), 0);
 	int pos0 = find_next_1(label_in_use, 0);
 	if (num_label_in_use == 1) {
 		for(unsigned int el = 0; el < domain_size; el++) {

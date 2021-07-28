@@ -36,7 +36,7 @@ public:
 	InvariantsStore(int ds, int num_op, int num_random, int nm);
 	virtual ~InvariantsStore();
 
-	bool save_invariants(int num_ops, std::vector<int**>& all_inv_vec, const std::vector<int*>& random_inv);
+	bool save_invariants(int num_ops, std::vector<int**>& all_inv_vec, const std::vector<std::vector<int>>& random_inv);
 	bool retrieve_invariants(int model_num, int num_ops, int* combo_inv_vec[], const std::vector<int>& random_list) const;
 	void reset_storage() {next_free_pos = 0;};
 	int  model_count() {return next_free_pos;};

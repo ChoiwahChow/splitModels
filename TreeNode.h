@@ -75,7 +75,6 @@ class Tree {
 private:
 	static const int default_max_depth = 4;   // starts from 1
 	static const int default_num_labels = 2;
-	static const int max_domain_size = 64;
 	std::vector<std::vector<int>>*         op;
 	std::string   sym;
 	std::vector<OpNode>    all_op_nodes;
@@ -90,7 +89,7 @@ private:
 	unsigned int avail_op_node_pos;
 	unsigned int avail_value_node_pos;
 
-	int invariants[max_domain_size];
+	std::vector<int> invariants;
 
 	static int find_next_1(std::vector<int> vec, unsigned int start_pos);
 
@@ -112,7 +111,7 @@ public:
 	void initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
 			std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed);
 	void calc_invariant_vector(unsigned int domain_size);
-	int* get_invariants() {return invariants;};
+	std::vector<int> get_invariants() {return invariants;};
 	void print_invariants(unsigned int domain_size) const;
 };
 

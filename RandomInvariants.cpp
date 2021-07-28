@@ -17,7 +17,7 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 		std::vector<Tree>& trees, std::vector<int>& op_type, std::vector<std::string>& op_sym,
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt,
 		std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_function_op_sym,
-		std::vector<std::string>& bin_relation_op_sym, std::vector<int*>& random_invariants)
+		std::vector<std::string>& bin_relation_op_sym, std::vector<std::vector<int>>& random_invariants)
 {
 	if (tree_initialized)
 		return;
@@ -49,7 +49,7 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 
 
 void RandomInvariants::calc_random_invariants(int domain_size, int& num_random, std::vector<Tree>& trees,
-		std::vector<int>& all_bin_function_mt, std::vector<int*>& random_invariants)
+		std::vector<int>& all_bin_function_mt, std::vector<std::vector<int>>& random_invariants)
 {
 	if (!all_bin_function_mt.empty()) {
 		for( int idx=0; idx < num_random; idx++) {
@@ -70,7 +70,7 @@ void RandomInvariants::calc_random_invariants(int domain_size, int& num_random, 
 
 
 void RandomInvariants::calc_random_invariants(int domain_size, std::vector<int>& random_list, std::vector<Tree>& trees,
-		std::vector<int>& all_bin_function_mt, std::vector<int*>& random_invariants)
+		std::vector<int>& all_bin_function_mt, std::vector<std::vector<int>>& random_invariants)
 {
 	if (!all_bin_function_mt.empty()) {
 		for( size_t idx=0; idx < random_list.size(); idx++) {

@@ -27,7 +27,6 @@
 #include "IsoFilter.h"
 #include "Buckets.h"
 #include "Utils.h"
-#include "RandomInvariants.h"
 
 
 int main(int argc, char* argv[])
@@ -74,7 +73,6 @@ int main(int argc, char* argv[])
 	std::vector<std::string> op_sym;
 
 	std::vector<Tree> trees(input_num_random);
-	std::vector<int*> random_invariants(input_num_random); // each points to an array of size domain_size, one invariant for each domain element in this array
 	std::vector<int> all_bin_function_mt;
 	std::vector<std::string> bin_function_op_sym;
 	std::vector<int> all_bin_relation_mt;
@@ -85,7 +83,7 @@ int main(int argc, char* argv[])
 
 	int num_models = 0;
 	int num_models_processed = Buckets::calc_all_invariants(in_file, domain_size, num_models, argParser.seed, num_random,
-			argParser.max_sample_size, argParser.sampling_frequency, random_invariants, trees, op_type, op_sym, all_inv_vec,
+			argParser.max_sample_size, argParser.sampling_frequency, trees, op_type, op_sym, all_inv_vec,
 			all_mt, all_bin_function_mt, all_bin_relation_mt, bin_function_op_sym, bin_relation_op_sym, models, inv_store,
 			argParser.no_basic_invariants);
 
@@ -104,10 +102,9 @@ int main(int argc, char* argv[])
 	int calc_selected_random_start = Utils::get_wall_time();
 	std::vector<std::vector<std::string>> interps;  // stores all interpretations
 	interps.reserve(num_models);
-	random_invariants.resize(random_list.size());
 
 	num_models_processed = Buckets::calc_selected_invariants(in_file, domain_size, num_models, random_list,
-			random_invariants, trees, op_type, op_sym, all_inv_vec, combo_inv_vec,
+			trees, op_type, op_sym, all_inv_vec, combo_inv_vec,
 			all_mt, all_bin_function_mt, all_bin_relation_mt, models, interps, argParser.no_basic_invariants);
 
 	double inv_calc_time = Utils::get_wall_time() - start_time;

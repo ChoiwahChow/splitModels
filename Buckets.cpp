@@ -27,8 +27,8 @@ Buckets::~Buckets() {
  * This is for computing all invariants: basic invariants and the all random invariants,
  * and save into InvariantsStore
  */
-int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num_models, int starting_seed, int& num_random,
-		int max_sample_size, int sampling_frequency, std::vector<int*>& random_invariants, std::vector<Tree>& trees,
+int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num_models, int starting_seed, int num_random,
+		int max_sample_size, int sampling_frequency, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec,
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
@@ -36,6 +36,7 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
+	std::vector<std::vector<int>> random_invariants(num_random);
 	RandomInvariants  ri_gen = RandomInvariants();
 	num_models = -1;
 	std::ifstream is;
@@ -69,13 +70,13 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
  * no need to save the invariants
  */
 int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int& num_models, std::vector<int>& random_list,
-		std::vector<int*>& random_invariants, std::vector<Tree>& trees,
-		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
+		std::vector<Tree>& trees, std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& models, std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
+	std::vector<std::vector<int>> random_invariants(random_list.size());
 	RandomInvariants  ri_gen = RandomInvariants();
 	std::unordered_map<std::string, int> buckets;
 	num_models = -1;
@@ -97,7 +98,7 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 
         int** inv_vec = all_inv_vec[num_ops];
         for (int idx = 0; idx < num_random; idx++) {
-        	int* inv = random_invariants[idx];
+        	std::vector<int>& inv = random_invariants[idx];
         	for (int jdx = 0; jdx < domain_size; jdx++)
         		inv_vec[jdx][idx] = inv[jdx];
         }
@@ -232,14 +233,15 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, int num
  * Calculate all buckets without use invariantsStore.
  * This is for comparisons/testing
  */
-int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, int starting_seed, int& num_random,
-		int max_sample_size, int sampling_frequency, std::vector<int*>& random_invariants, std::vector<Tree>& trees,
+int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, int starting_seed, int num_random,
+		int max_sample_size, int sampling_frequency, std::vector<Tree>& trees,
 		std::vector<int>& op_type, std::vector<std::string>& op_sym, std::vector<int**>& all_inv_vec, int* combo_inv_vec[],
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
 		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym, std::vector<std::vector<std::string>>& interps)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
+	std::vector<std::vector<int>> random_invariants(num_random);
 	RandomInvariants  ri_gen = RandomInvariants();
 	num_models = -1;
 	std::string key;
@@ -262,7 +264,7 @@ int Buckets::no_savings(std::string& in_file, int domain_size, int& num_models, 
         Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
         int** inv_vec = all_inv_vec[num_ops];
         for (int idx = 0; idx < num_random; idx++) {
-        	int* inv = random_invariants[idx];
+        	std::vector<int>& inv = random_invariants[idx];
         	for (int jdx = 0; jdx < domain_size; jdx++)
         		inv_vec[jdx][idx] = inv[jdx];
         }

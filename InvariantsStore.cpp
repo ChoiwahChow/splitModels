@@ -24,7 +24,7 @@ InvariantsStore::InvariantsStore(int ds, int no, int n_random, int nm):
  * all_inv_vec contains only basic invariants
  */
 bool
-InvariantsStore::save_invariants(int num_ops, std::vector<int**>& all_inv_vec, const std::vector<int*>& all_random_inv)
+InvariantsStore::save_invariants(int num_ops, std::vector<int**>& all_inv_vec, const std::vector<std::vector<int>>& all_random_inv)
 {
 	if (next_free_pos >= num_models)  // no more space
 		return false;
