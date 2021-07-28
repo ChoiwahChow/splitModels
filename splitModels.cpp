@@ -3,7 +3,8 @@
 // Author      : 
 // Version     :
 // Copyright   : Your copyright notice
-// Description : Hello World in C, Ansi-style
+// Description : Filter out isomorphic models with invariants, including
+//               random invariants
 //============================================================================
 
 #include <stdio.h>

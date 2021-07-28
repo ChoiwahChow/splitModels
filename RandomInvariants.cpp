@@ -33,7 +33,6 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 			bin_relation_op_sym.push_back(op_sym[idx]);
 		}
 	}
-std::cerr << "**********init_random_invariants*************" << op_sym.size() <<  "  " << bin_function_op_sym.size() << std::endl;
 	int seed = starting_seed;
 	if (!all_bin_function_mt.empty()) {
 		for( int idx=0; idx < num_random; idx++) {
