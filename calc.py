@@ -39,7 +39,7 @@ def write_results(summary_file, stat):
             fp.write(",,,,,,,,,\n")
         else:
             avg = (stat['num_non_iso']*1.0) / stat['num_blocks']
-            fp.write(f",{stat['num_ops']},{stat['num_random']},{stat['num_blocks']},{stat['num_non_iso']}")
+            fp.write(f",{stat['num_ops']},{stat.get('num_random', 0)},{stat['num_blocks']},{stat['num_non_iso']}")
             fp.write(f",{avg},{stat['num_models']}")
             fp.write(f",{stat['inv_calc_time']},{stat['total_run_time']},{stat['max_time']}\n")
     
@@ -118,7 +118,7 @@ def run_all():
        fp.write('"id","name","order","#operations","#random invariants","#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time(sec)", "total run time(sec)","max time(sec)"\n')
     for id, params in all_algebras.items():
         print(datetime.now())
-        run_algebra(id, params, summary_file, "outputs", "working")
+        run_algebra(id, params, summary_file, "outputs", "working", 0)
 
     print(f'Finished at {datetime.now()}')
 
