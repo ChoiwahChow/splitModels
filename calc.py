@@ -83,7 +83,7 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
         
         model_file_path = expand_file_path(f"{model_path}/{model_file}")
         run_params = f'-d{order} -f{params["filter"]} -m{min_num_models_in_file} ' + \
-                     f'-o{output_file_prefix} -t{statistics_file} -u"{num_models}" ' + \
+                     f'-o{output_file_prefix} -t{statistics_file} -u{num_models} ' + \
                      f'-s{sample_frequency} -r{num_random} -l{max_level} -x{sample_size} -i"{model_file_path}"'
         print(f"params: {run_params}")
         cp = sp.run(f'{exec} {run_params}', capture_output=True, text=True, check=False, shell=True)
