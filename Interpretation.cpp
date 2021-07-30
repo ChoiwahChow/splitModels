@@ -76,7 +76,7 @@ std::vector<std::vector<int>> Interpretation::construct_2d_mt(int domain_size)
 
 // TODO: allow specifying binop to process
 int Interpretation::parse_interpretation(std::istream& is, int domain_size, std::vector<std::vector<std::vector<int>>>& all_mt,
-		std::stringstream& ss, std::vector<int>& op_type, std::vector<std::string>& op_sym, bool extract)
+		std::stringstream& ss, std::vector<int>& op_type, std::vector<std::string>& op_sym, bool save_line, bool extract)
 {
 	std::string line;
 	bool in_binop = false;
@@ -87,7 +87,8 @@ int Interpretation::parse_interpretation(std::istream& is, int domain_size, std:
 	while (is && !done) {
 		std::getline(is, line);
 		if (extract) {
-			ss << line << std::endl;
+			if (save_line)
+				ss << line << std::endl;
 			if (in_binop) {
 				parse_row(line, all_mt[op_pos][row]);
 				++row;

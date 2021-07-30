@@ -27,7 +27,7 @@ public:
 
 	void calc_random_invariants(int domain_size, int& num_random, std::vector<Tree>& trees,
 			std::vector<int>& all_bin_function_mt, std::vector<std::vector<int>>& random_invariants);
-	void calc_random_invariants(int domain_size, std::vector<int>& random_list, std::vector<Tree>& trees,
+	void calc_random_invariants(int domain_size, const std::vector<int>& random_list, std::vector<Tree>& trees,
 			std::vector<int>& all_bin_function_mt, std::vector<std::vector<int>>& random_invariants);
 };
 

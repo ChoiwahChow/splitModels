@@ -114,12 +114,13 @@ void Tree::build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_
 			op = &all_mt[all_bin_relation_mt[x]];
 		}
 	}
-/*
+	//   debug print
+	/*
 	left->to_string(std::cerr, false);
 	std::cerr << " " << sym << " ";
 	right->to_string(std::cerr, false);
 	std::cerr << std::endl;
-*/
+	*/
 }
 
 int Tree::find_next_1(std::vector<int> vec, unsigned int start_pos) {

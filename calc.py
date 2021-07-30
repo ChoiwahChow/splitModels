@@ -44,7 +44,7 @@ def write_results(summary_file, stat):
             fp.write(f",{stat['inv_calc_time']},{stat['total_run_time']},{stat['max_time']}\n")
     
     
-def run_algebra(id, params, summary_file, model_path = "outputs", working_path = "working"):
+def run_algebra(id, params, summary_file, model_path = "outputs", working_path = "working", num_random=50, max_level=10):
     order = params['order']
     print(f"Doing {params['name']}, {order}")
 
@@ -64,25 +64,27 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
             num_models = params['num_models']
             if num_models > 1000000:
                 sample_frequency = 1000
-                min_num_models_in_file = 20000
+                min_num_models_in_file = 100
             elif num_models > 100000:
                 sample_frequency = 100
-                min_num_models_in_file = 5000
+                min_num_models_in_file = 100
             elif num_models > 10000:
                 sample_frequency = 20
-                min_num_models_in_file = 1000
+                min_num_models_in_file = 100
             elif num_models > 5000:
                 sample_frequency = 10
                 min_num_models_in_file = 10
             else:
+                min_num_models_in_file = 1
+            if min_num_models_in_file == -1:
                 min_num_models_in_file = 1
         num_models = params['num_models']
         sample_size = num_models // sample_frequency + 2
         
         model_file_path = expand_file_path(f"{model_path}/{model_file}")
         run_params = f'-d{order} -f{params["filter"]} -m{min_num_models_in_file} ' + \
-                     f'-o{output_file_prefix} -t{statistics_file} ' + \
-                     f'-s{sample_frequency} -r30 -l20 -x{sample_size} -i"{model_file_path}"'
+                     f'-o{output_file_prefix} -t{statistics_file} -u"{num_models}" ' + \
+                     f'-s{sample_frequency} -r{num_random} -l{max_level} -x{sample_size} -i"{model_file_path}"'
         print(f"params: {run_params}")
         cp = sp.run(f'{exec} {run_params}', capture_output=True, text=True, check=False, shell=True)
 
@@ -113,7 +115,7 @@ def run_all():
     
     print(f'Started at {datetime.now()}')
     with (open(summary_file, "w+")) as fp:
-       fp.write('"id","name","order","#operations","#random invariants",#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time(sec)", "total run time(sec)","max time(sec)"\n')
+       fp.write('"id","name","order","#operations","#random invariants","#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time(sec)", "total run time(sec)","max time(sec)"\n')
     for id, params in all_algebras.items():
         print(datetime.now())
         run_algebra(id, params, summary_file, "outputs", "working")

@@ -2,7 +2,7 @@
 # CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 CXXFLAGS =	-O3 -Wall -fmessage-length=0
 
-OBJS =		splitModels.o Buckets.o Invariant.o RandomInvariants.o IsoFilter.o Interpretation.o Utils.o ArgumentParser.o InvariantsStore.o TreeNode.o
+OBJS =		splitModels.o Buckets.o Invariant.o RandomInvariants.o IsoFilter.o Interpretation.o Utils.o ArgumentParser.o TreeNode.o
 
 LIBS =
 

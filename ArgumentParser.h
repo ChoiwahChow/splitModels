@@ -26,6 +26,7 @@ public:
 	static const char arg_interpretation_file_name = 'i';
 	static const char arg_max_random_level = 'l';
 	static const char arg_no_basic_invariants = 'n';
+	static const char arg_num_input_models = 'u';
 public:
 	int           domain_size;
 	int           min_models_in_file;
@@ -41,6 +42,7 @@ public:
 	std::string   interpretation_file_name;
 	int           max_random_level;
 	bool          no_basic_invariants;
+	int           num_input_models;
 
 public:
 	ArgumentParser(int argc, char* argv[]);
