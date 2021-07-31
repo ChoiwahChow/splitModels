@@ -16,7 +16,7 @@
 
 class Buckets {
 private:
-	static void copy_last_invariant(int domain_size, int num_models, int base_invariants_length, std::vector<std::vector<std::vector<int>>>& all_inv_vec,
+	static void copy_last_invariant(int domain_size, int base_invariants_length, std::vector<std::vector<std::vector<int>>>& all_inv_vec,
 			const std::vector<std::vector<std::vector<int>>>& all_random_invariants, int pos, int best_invariant);
 
 	static void hash_model(std::unordered_map<std::string, int>& blocks, const std::string& model_str,

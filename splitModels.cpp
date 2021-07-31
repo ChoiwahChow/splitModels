@@ -51,21 +51,15 @@ int main(int argc, char* argv[])
 		num_ops = res[0];
 		num_models = res[1];
 		acutal_num_randoms = res[2];
-		int acutal_sample_size = res[3];
-
-		std::cerr << "************Actual Sample Size: " << acutal_sample_size << "\n";
-		std::cerr << "************Actual number of random invariant: " << acutal_num_randoms << std::endl;
+		// int acutal_sample_size = res[3];
 		// return EXIT_SUCCESS;
 	}
 	else {
+		num_models = argParser.num_input_models;
 		Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
 	}
 	num_blocks = interps.size();
 	double inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
-
-	std::cerr << "************Full number of models processed: " << num_models << "\n";
-	std::cerr << "************Number of blocks: " << num_blocks << "\n";
-	std::cerr << "************Time for calculating invariants and blocks: " << inv_calc_time << "\n" << std::endl;
 
 	double max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,
 			argParser.mace_filter, argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);

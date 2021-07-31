@@ -44,7 +44,7 @@ def write_results(summary_file, stat):
             fp.write(f",{stat['inv_calc_time']},{stat['total_run_time']},{stat['max_time']}\n")
     
     
-def run_algebra(id, params, summary_file, model_path = "outputs", working_path = "working", num_random=50, max_level=10):
+def run_algebra(id, params, summary_file, model_path = "outputs", working_path = "working", num_random=50, max_level=10, additional_params=""):
     order = params['order']
     print(f"Doing {params['name']}, {order}")
 
@@ -84,8 +84,9 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
         model_file_path = expand_file_path(f"{model_path}/{model_file}")
         run_params = f'-d{order} -f{params["filter"]} -m{min_num_models_in_file} ' + \
                      f'-o{output_file_prefix} -t{statistics_file} -u{num_models} ' + \
-                     f'-s{sample_frequency} -r{num_random} -l{max_level} -x{sample_size} -i"{model_file_path}"'
-        print(f"params: {run_params}")
+                     f'-s{sample_frequency} -r{num_random} -l{max_level} -x{sample_size} -i"{model_file_path}" ' + \
+                     additional_params
+        print(f"run: {exec} {run_params}")
         cp = sp.run(f'{exec} {run_params}', capture_output=True, text=True, check=False, shell=True)
 
         with (open(statistics_file)) as fp:
@@ -118,7 +119,7 @@ def run_all():
        fp.write('"id","name","order","#operations","#random invariants","#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time(sec)", "total run time(sec)","max time(sec)"\n')
     for id, params in all_algebras.items():
         print(datetime.now())
-        run_algebra(id, params, summary_file, "outputs", "working", 0)
+        run_algebra(id, params, summary_file, "outputs", "working", 30, 20, "-n")
 
     print(f'Finished at {datetime.now()}')
 

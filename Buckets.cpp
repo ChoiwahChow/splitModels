@@ -50,13 +50,12 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 					bin_function_op_sym, bin_relation_op_sym, all_random_invariants[num_models_processed]);
 		ri_gen.calc_random_invariants(domain_size, num_random, trees, all_bin_function_mt, all_random_invariants[num_models_processed]);
 
-		if (!no_basic_invariants) {
-			all_inv_vec.push_back(std::vector<std::vector<int>>());
-			Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec[num_models_processed], op_type, op_sym);
-		}
+		all_inv_vec.push_back(std::vector<std::vector<int>>());
+		if (no_basic_invariants)
+			num_ops = 0;
+		Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec[num_models_processed], op_type, op_sym);
+
         num_models_processed++;
-        if( (size_t)num_ops != op_sym.size())
-        	std::cerr << "Error: ******************************** num_ops != op_sym.size " << num_ops << std::endl;
 	}
 	is.close();
 	return num_models_processed;
@@ -96,7 +95,7 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 	std::stringstream ss;
 	int num_models_processed = 0;
 	std::vector<std::vector<int>> random_invariants(random_list.size());
-	std::vector<std::vector<int>> all_inv_vec;  // vector of all invariant vectors of a model, one for each domain element
+	std::vector<std::vector<int>> inv_vec;  // vector of all invariant vectors of a model, one for each domain element
 	int basic_invariant_length = -1;
 	RandomInvariants  ri_gen = RandomInvariants();
 	std::unordered_map<std::string, int> blocks;
@@ -114,21 +113,22 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 			continue;
 		ri_gen.calc_random_invariants(domain_size, random_list, trees, all_bin_function_mt, random_invariants);
 
-		if (!no_basic_invariants)
-			Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
+		if (no_basic_invariants)
+			num_ops = 0;
+		Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, inv_vec, op_type, op_sym);
 		if (basic_invariant_length < 0) {
-			basic_invariant_length = all_inv_vec[0].size();
+			basic_invariant_length = inv_vec[0].size();
 			for (int el = 0; el < domain_size; el++) {
 				for (size_t idx = 0; idx < random_list.size(); ++idx)
-					all_inv_vec[el].push_back(0);
+					inv_vec[el].push_back(0);
 			}
 		}
         for (int idx = 0; idx < num_random; idx++) {
         	std::vector<int>& inv = random_invariants[idx];
         	for (int jdx = 0; jdx < domain_size; jdx++)
-        		all_inv_vec[jdx][idx+basic_invariant_length] = inv[jdx];
+        		inv_vec[jdx][idx+basic_invariant_length] = inv[jdx];
         }
-        hash_model(blocks, ss.str(), next_key, all_inv_vec, interps);
+        hash_model(blocks, ss.str(), next_key, inv_vec, interps);
 		ss.str("");
         num_models_processed++;
 	}
@@ -137,14 +137,15 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
 }
 
 
-void Buckets::copy_last_invariant(int domain_size, int num_models, int base_invariants_length, std::vector<std::vector<std::vector<int>>>& all_inv_vec,
+void Buckets::copy_last_invariant(int domain_size, int base_invariants_length, std::vector<std::vector<std::vector<int>>>& all_inv_vec,
 		const std::vector<std::vector<std::vector<int>>>& all_random_invariants, int pos, int best_invariant)
 {
+	int num_models = all_inv_vec.size();
 	for (int model_num = 0; model_num < num_models; model_num++) {
 		const std::vector<std::vector<int>>& random_invariants = all_random_invariants[model_num];
 		std::vector<std::vector<int>>& combined_invariants = all_inv_vec[model_num];
 		for (int el = 0; el < domain_size; ++el)
-			combined_invariants[el][base_invariants_length+pos-1] = random_invariants[best_invariant][el];
+			combined_invariants[el][base_invariants_length+pos] = random_invariants[best_invariant][el];
 	}
 }
 
@@ -207,10 +208,9 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 	}
 	int num_random = all_random_invariants[0].size();
 
-	int num_models = all_inv_vec.size();
 	int base_invariants_length = all_inv_vec[0][0].size();
 	int min_score = score_invariants(domain_size, base_invariants_length, all_inv_vec, all_random_invariants, random_list);
-	std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
+	// std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
 
 	int level = -1;
 	int visited[num_random] = {0};
@@ -229,12 +229,12 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 				best_invariant = idx;
 			}
 		}
-		std::cerr << "***************** find_best_random_invariants, level: " << level << " trial score: " << min_score
-				<< " best invariant: " << best_invariant << std::endl;
+		/*std::cerr << "***************** find_best_random_invariants, level: " << level << " trial score: " << min_score
+				<< " best invariant: " << best_invariant << std::endl; */
 		random_list[level] = best_invariant;
 
 		if (best_invariant > -1) {
-			copy_last_invariant(domain_size, num_models, base_invariants_length, all_inv_vec, all_random_invariants, level, best_invariant);
+			copy_last_invariant(domain_size, base_invariants_length, all_inv_vec, all_random_invariants, level, best_invariant);
 			visited[best_invariant] = 1;
 		}
 	}
@@ -280,9 +280,9 @@ std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int s
 				trees, op_type, op_sym, all_mt, all_bin_function_mt, all_bin_relation_mt, interps, no_basic_invariants);
 
 	std::vector<int> return_val;
-	return_val.push_back(op_sym.size());
+	return_val.push_back((int)op_sym.size());
 	return_val.push_back(num_models_processed);
-	return_val.push_back(random_list.size());
+	return_val.push_back((int)random_list.size());
 	return_val.push_back(actual_sample_size);
 	return return_val;
 }
