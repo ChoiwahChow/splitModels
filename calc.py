@@ -76,8 +76,7 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
                 min_num_models_in_file = 10
             else:
                 min_num_models_in_file = 1
-            if min_num_models_in_file == -1:
-                min_num_models_in_file = 1
+
         num_models = params['num_models']
         sample_size = num_models // sample_frequency + 2
         
@@ -86,8 +85,14 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
                      f'-o{output_file_prefix} -t{statistics_file} -u{num_models} ' + \
                      f'-s{sample_frequency} -r{num_random} -l{max_level} -x{sample_size} -i"{model_file_path}" ' + \
                      additional_params
-        print(f"run: {exec} {run_params}")
-        cp = sp.run(f'{exec} {run_params}', capture_output=True, text=True, check=False, shell=True)
+        cmd = f"{exec} {run_params}"
+        print(cmd)
+        cp = sp.run(cmd, capture_output=True, text=True, check=False, shell=True)
+        
+        with (open(f"{working_path}/error.out", "a+")) as fp:
+            fp.write(f"{cmd}\n\n")
+            fp.write(cp.stderr);
+            fp.write("\n\n");
 
         with (open(statistics_file)) as fp:
             statistics = json.load(fp)
@@ -114,12 +119,16 @@ def run_all():
     os.makedirs("outputs", exist_ok = True)
     os.makedirs("working", exist_ok = True)
     
-    print(f'Started at {datetime.now()}')
+    num_random = 0
+    max_level = 10
+    no_basic = "-n"
+    print(f'Started at {datetime.now()} with num_random {num_random}, max_level {max_level}, and no_basic_invariants {no_basic}')
+    
     with (open(summary_file, "w+")) as fp:
        fp.write('"id","name","order","#operations","#random invariants","#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time(sec)", "total run time(sec)","max time(sec)"\n')
     for id, params in all_algebras.items():
         print(datetime.now())
-        run_algebra(id, params, summary_file, "outputs", "working", 30, 20, "-n")
+        run_algebra(id, params, summary_file, "outputs", "working", num_random, max_level, no_basic)
 
     print(f'Finished at {datetime.now()}')
 
