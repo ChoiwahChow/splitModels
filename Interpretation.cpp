@@ -30,6 +30,8 @@ void Interpretation::count_appearances(const std::string& line, std::vector<int>
 	std::stringstream row(line);
 	std::string el;
 	int val = 0;
+	for (size_t idx = 0; idx < vec.size(); idx++)
+		vec[idx] = 0;
 	while(std::getline(row, el, ','))
     {
 		std::stringstream elst(el);

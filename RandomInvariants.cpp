@@ -34,16 +34,16 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 		}
 	}
 	int seed = starting_seed;
-	if (!all_bin_function_mt.empty()) {
+	if (all_bin_function_mt.empty()) {
+		num_random = 0;
+		random_invariants.clear();
+	}
+	else {
 		for( int idx=0; idx < num_random; idx++) {
 			trees[idx] = Tree(4, 2);
 			trees[idx].initialize(all_mt, all_bin_function_mt, bin_function_op_sym,
 					all_bin_relation_mt, bin_relation_op_sym, seed++);
 		}
-	}
-	else {
-		num_random = 0;
-		random_invariants.clear();
 	}
 }
 

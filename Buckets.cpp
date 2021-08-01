@@ -42,6 +42,7 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 		num_models++;
 		bool to_process = (num_models_processed < max_sample_size) && (num_models % sampling_frequency == 0);
 		int num_ops = Interpretation::parse_interpretation(is, domain_size, all_mt, ss, op_type, op_sym, false, to_process);
+
 		if (num_ops <= 0)
 			continue;
 		all_random_invariants.push_back(std::vector<std::vector<int>>(num_random));
@@ -54,7 +55,6 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 		if (no_basic_invariants)
 			num_ops = 0;
 		Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec[num_models_processed], op_type, op_sym);
-
         num_models_processed++;
 	}
 	is.close();
@@ -207,10 +207,9 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 		return -1;
 	}
 	int num_random = all_random_invariants[0].size();
-
 	int base_invariants_length = all_inv_vec[0][0].size();
 	int min_score = score_invariants(domain_size, base_invariants_length, all_inv_vec, all_random_invariants, random_list);
-	// std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
+	//std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
 
 	int level = -1;
 	int visited[num_random] = {0};
@@ -229,8 +228,8 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 				best_invariant = idx;
 			}
 		}
-		/*std::cerr << "***************** find_best_random_invariants, level: " << level << " trial score: " << min_score
-				<< " best invariant: " << best_invariant << std::endl; */
+		//std::cerr << "***************** find_best_random_invariants, level: " << level << " trial score: " << min_score
+		//		<< " best invariant: " << best_invariant << std::endl;
 		random_list[level] = best_invariant;
 
 		if (best_invariant > -1) {
@@ -302,15 +301,15 @@ int Buckets::bucketing(std::string& in_file, int domain_size, int& num_ops, int 
 	std::ifstream is;
 	is.open(in_file);
 	std::vector<std::vector<std::vector<int>>> all_mt;
-	std::vector<std::vector<int>> all_inv_vec;
+	std::vector<std::vector<int>> inv_vec;
 	interps.reserve(num_input_models);
 	while (is) {
 		num_models++;
 		num_ops = Interpretation::parse_interpretation(is, domain_size, all_mt, ss, op_type, op_sym);
 		if (num_ops <= 0)
 			continue;
-        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, all_inv_vec, op_type, op_sym);
-        hash_model(blocks, ss.str(), next_key, all_inv_vec, interps);
+        Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, inv_vec, op_type, op_sym);
+        hash_model(blocks, ss.str(), next_key, inv_vec, interps);
 		ss.str("");
 	}
 	num_ops = op_sym.size();
