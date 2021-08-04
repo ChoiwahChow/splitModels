@@ -28,9 +28,9 @@ Buckets::~Buckets() {
 int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num_models, int starting_seed, int num_random,
 		int max_sample_size, int sampling_frequency, std::vector<Tree>& trees, std::vector<int>& op_type, std::vector<std::string>& op_sym,
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
-		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
-		std::vector<std::vector<std::vector<int>>>& all_random_invariants, std::vector<std::vector<std::vector<int>>>& all_inv_vec,
-		bool no_basic_invariants)
+		std::vector<int>& all_unary_function_mt, std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
+		std::vector<std::string>& unary_function_op_sym, std::vector<std::vector<std::vector<int>>>& all_random_invariants,
+		std::vector<std::vector<std::vector<int>>>& all_inv_vec, bool no_basic_invariants)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
@@ -46,9 +46,9 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 		if (num_ops <= 0)
 			continue;
 		all_random_invariants.push_back(std::vector<std::vector<int>>(num_random));
-		ri_gen.init_random_invariants(domain_size, starting_seed, num_random,
-					trees, op_type, op_sym, all_mt, all_bin_function_mt, all_bin_relation_mt,
-					bin_function_op_sym, bin_relation_op_sym, all_random_invariants[num_models_processed]);
+		ri_gen.init_random_invariants(domain_size, starting_seed, num_random, trees, op_type, op_sym, all_mt, all_bin_function_mt,
+				all_bin_relation_mt, all_unary_function_mt, bin_function_op_sym, bin_relation_op_sym, unary_function_op_sym,
+				all_random_invariants[num_models_processed]);
 		ri_gen.calc_random_invariants(domain_size, num_random, trees, all_bin_function_mt, all_random_invariants[num_models_processed]);
 
 		all_inv_vec.push_back(std::vector<std::vector<int>>());
@@ -209,7 +209,7 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 	int num_random = all_random_invariants[0].size();
 	int base_invariants_length = all_inv_vec[0][0].size();
 	int min_score = score_invariants(domain_size, base_invariants_length, all_inv_vec, all_random_invariants, random_list);
-	//std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
+	// std::cerr << "***************** find_best_random_invariants of " << all_random_invariants[0].size() << " invariants, initial score: " << min_score << std::endl;
 
 	int level = -1;
 	int visited[num_random] = {0};
@@ -262,6 +262,8 @@ std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int s
 	std::vector<std::string> bin_function_op_sym;
 	std::vector<int> all_bin_relation_mt;
 	std::vector<std::string> bin_relation_op_sym;
+	std::vector<int> all_unary_function_mt;
+	std::vector<std::string> unary_function_op_sym;
 
 	std::vector<std::vector<std::vector<int>>> all_mt;
 	std::vector<std::vector<std::vector<int>>> all_random_invariants;
@@ -269,8 +271,8 @@ std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int s
 	std::vector<int> random_list;
 
 	int actual_sample_size = calc_all_invariants(in_file, domain_size, num_models, starting_seed, num_random, max_sample_size,
-			sampling_frequency, trees, op_type, op_sym, all_mt, all_bin_function_mt, all_bin_relation_mt, bin_function_op_sym,
-			bin_relation_op_sym, all_random_invariants, all_inv_vec, no_basic_invariants);
+			sampling_frequency, trees, op_type, op_sym, all_mt, all_bin_function_mt, all_bin_relation_mt, all_unary_function_mt,
+			bin_function_op_sym, bin_relation_op_sym, unary_function_op_sym, all_random_invariants, all_inv_vec, no_basic_invariants);
 
 	find_best_random_invariants(max_level, domain_size, all_inv_vec, all_random_invariants, random_list);
 

@@ -45,26 +45,35 @@ void OpNode::to_string(std::ostream& out, bool paran) const
 		out << ")";
 }
 
-void Tree::clear_memory()
+UnaryOpNode::~UnaryOpNode() {
+
+}
+
+void UnaryOpNode::to_string(std::ostream& out, bool paran) const
 {
-	this->avail_op_node_pos = 0;
-	this->avail_value_node_pos = 0;
+	out << "(";
+	left->to_string(out);
+	out << ")";
+	out << sym << " ";
 }
 
 Tree::Tree(unsigned int depth, unsigned int num_labels):
 		op(nullptr), sym("="), left(nullptr), right(nullptr), depth(depth),
-		num_labels(num_labels), op_node_size(int(pow(2.0, depth))), value_node_size(op_node_size*2),
-		avail_op_node_pos(0), avail_value_node_pos(0)
+		num_labels(num_labels), op_node_size(int(pow(2.0, depth))), unary_op_nodes_size(op_node_size+1),
+		value_node_size(op_node_size+1), avail_op_node_pos(0), avail_value_node_pos(0), avail_unary_op_node_pos(0)
 {
 }
 
-void Tree::initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
-		std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym, unsigned int seed)
+void Tree::initialize(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt,
+		std::vector<std::string>& op_sym, std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym,
+		std::vector<int>& all_unary_function_mt, std::vector<std::string>& unary_function_op_sym, unsigned int seed)
 {
 	all_op_nodes = std::vector<OpNode>(op_node_size);
 	all_value_nodes = std::vector<ValueNode>(value_node_size);
+	all_unary_op_nodes = std::vector<UnaryOpNode>(unary_op_nodes_size);
 	srand(seed);
-	build_tree_structure(all_mt, all_bin_function_mt, op_sym, all_bin_relation_mt, bin_relation_op_sym);
+	build_tree_structure(all_mt, all_bin_function_mt, op_sym, all_bin_relation_mt,
+			bin_relation_op_sym,all_unary_function_mt, unary_function_op_sym);
 	int domain_size = all_mt[0][0].size();
 	invariants.resize(domain_size, 0); // TODO: check, perhaps domain_size is needed.
 }
@@ -80,33 +89,57 @@ ValueNode* Tree::build_value_node()
 
 OpNode* Tree::build_op_node(std::vector<std::vector<int>>& mt, std::string& op_sym)
 {
-	OpNode* v_node = &all_op_nodes[avail_op_node_pos++];
-	v_node->set_op(&mt);
-	v_node->set_sym(op_sym);
-	return v_node;
+	OpNode* op_node = &all_op_nodes[avail_op_node_pos++];
+	op_node->set_op(&mt);
+	op_node->set_sym(op_sym);
+	return op_node;
 }
 
-void Tree::build_node(TreeNode** node, unsigned int level, std::vector<std::vector<std::vector<int>>>& all_mt,
-		std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym, bool top_is_op)
+UnaryOpNode* Tree::build_unary_op_node(std::vector<std::vector<int>>& mt, std::string& op_sym)
+{
+	UnaryOpNode* op_node = &all_unary_op_nodes[avail_unary_op_node_pos++];
+	op_node->set_op(&(mt[0]));
+	op_node->set_sym(op_sym);
+	return op_node;
+}
+
+
+TreeNode* Tree::build_node(unsigned int level, std::vector<std::vector<std::vector<int>>>& all_mt,
+		std::vector<int>& all_bin_function_mt, std::vector<std::string>& op_sym,
+		std::vector<int>& all_unary_function_mt, std::vector<std::string>& unary_function_op_sym, bool top_is_op)
 {
 	bool is_value_node = !top_is_op && (level == depth || rand() % 2 == 0);
 	if (is_value_node) {
-		*node = build_value_node();
+		return build_value_node();
 	}
 	else {
-		int which_op = rand() % op_sym.size();
-		*node = build_op_node(all_mt[all_bin_function_mt[which_op]], op_sym[which_op]);
-		build_node(&(*node)->left, level+1, all_mt, all_bin_function_mt, op_sym);
-		build_node(&(*node)->right, level+1, all_mt, all_bin_function_mt, op_sym);
+		bool unary = false;
+		if (all_unary_function_mt.size() > 0) {
+			unary = rand() % 4 == 0;
+		}
+		if (unary) {
+			int which_op = rand() % unary_function_op_sym.size();
+			UnaryOpNode* node = build_unary_op_node(all_mt[all_unary_function_mt[which_op]], unary_function_op_sym[which_op]);
+			node->left = build_node(level+1, all_mt, all_bin_function_mt, op_sym, all_unary_function_mt, unary_function_op_sym);
+			return node;
+		}
+		else {
+			int which_op = rand() % op_sym.size();
+			OpNode* node = build_op_node(all_mt[all_bin_function_mt[which_op]], op_sym[which_op]);
+			node->left = build_node(level+1, all_mt, all_bin_function_mt, op_sym, all_unary_function_mt, unary_function_op_sym);
+			node->right = build_node(level+1, all_mt, all_bin_function_mt, op_sym, all_unary_function_mt, unary_function_op_sym);
+			return node;
+		}
 	}
 }
 
 void Tree::build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt,
-		std::vector<std::string>& op_sym, std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym)
+		std::vector<std::string>& op_sym, std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_relation_op_sym,
+		std::vector<int>& all_unary_function_mt, std::vector<std::string>& unary_function_op_sym)
 {
 	label_in_use = std::vector<int>(num_labels, 0);
-	build_node(&left, 1, all_mt, all_bin_function_mt, op_sym, true);
-	build_node(&right, 1, all_mt, all_bin_function_mt, op_sym);
+	left = build_node(1, all_mt, all_bin_function_mt, op_sym, all_unary_function_mt, unary_function_op_sym, true);
+	right = build_node(1, all_mt, all_bin_function_mt, op_sym, all_unary_function_mt, unary_function_op_sym);
 	if (all_bin_relation_mt.size() > 0) {
 		if (rand() % 2 == 0) {
 			int x = rand() % all_bin_relation_mt.size();
@@ -114,8 +147,7 @@ void Tree::build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_
 			op = &all_mt[all_bin_relation_mt[x]];
 		}
 	}
-	//   debug print
-	/*
+	/*  debug print
 	left->to_string(std::cerr, false);
 	std::cerr << " " << sym << " ";
 	right->to_string(std::cerr, false);
@@ -123,7 +155,8 @@ void Tree::build_tree_structure(std::vector<std::vector<std::vector<int>>>& all_
 	*/
 }
 
-int Tree::find_next_1(std::vector<int> vec, unsigned int start_pos) {
+int Tree::find_next_1(std::vector<int> vec, unsigned int start_pos)
+{
 	for(unsigned int idx=start_pos; idx<vec.size(); idx++) {
 		if (vec[idx] > 0)
 			return idx;
@@ -134,7 +167,6 @@ int Tree::find_next_1(std::vector<int> vec, unsigned int start_pos) {
 void Tree::calc_invariant_vector(unsigned int domain_size)
 {
 	// TODO:: check that domain_size >= num_labels
-
 	std::vector<int> values(domain_size, 0);
 	int num_label_in_use = std::accumulate(label_in_use.begin(), label_in_use.end(), decltype(label_in_use)::value_type(0));
 	std::fill(invariants.begin(), invariants.end(), 0);
@@ -184,7 +216,6 @@ void Tree::calc_invariant_vector(unsigned int domain_size)
 			}
 		}
 	}
-	//std::cerr << "Number labels " << num_label_in_use << " invariants ";
 	//print_invariants(domain_size);
 }
 
@@ -198,6 +229,12 @@ int OpNode::eval_node(std::vector<int>& values)
 	int left_value  = left->eval_node(values);
 	int right_value = right->eval_node(values);
 	return (*op)[left_value][right_value];
+}
+
+int UnaryOpNode::eval_node(std::vector<int>& values)
+{
+	int left_value  = left->eval_node(values);
+	return (*op)[left_value];
 }
 
 void Tree::print_invariants(unsigned int domain_size) const

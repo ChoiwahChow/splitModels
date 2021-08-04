@@ -119,8 +119,8 @@ def run_all():
     os.makedirs("outputs", exist_ok = True)
     os.makedirs("working", exist_ok = True)
     
-    num_random = 0
-    max_level = 10
+    num_random = 50
+    max_level = 20
     no_basic = "-n"
     print(f'Started at {datetime.now()} with num_random {num_random}, max_level {max_level}, and no_basic_invariants {no_basic}')
     

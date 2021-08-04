@@ -16,8 +16,9 @@ RandomInvariants::~RandomInvariants() {
 void RandomInvariants::init_random_invariants(int domain_size, int starting_seed, int& num_random,
 		std::vector<Tree>& trees, std::vector<int>& op_type, std::vector<std::string>& op_sym,
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt,
-		std::vector<int>& all_bin_relation_mt, std::vector<std::string>& bin_function_op_sym,
-		std::vector<std::string>& bin_relation_op_sym, std::vector<std::vector<int>>& random_invariants)
+		std::vector<int>& all_bin_relation_mt, std::vector<int>& all_unary_function_mt,
+		std::vector<std::string>& bin_function_op_sym, std::vector<std::string>& bin_relation_op_sym,
+		std::vector<std::string>& unary_function_op_sym, std::vector<std::vector<int>>& random_invariants)
 {
 	if (tree_initialized)
 		return;
@@ -32,6 +33,10 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 			all_bin_relation_mt.push_back(idx);
 			bin_relation_op_sym.push_back(op_sym[idx]);
 		}
+		else if (op_type[idx] == InterpretationType::unary_function) {
+			all_unary_function_mt.push_back(idx);
+			unary_function_op_sym.push_back(op_sym[idx]);
+		}
 	}
 	int seed = starting_seed;
 	if (all_bin_function_mt.empty()) {
@@ -41,8 +46,8 @@ void RandomInvariants::init_random_invariants(int domain_size, int starting_seed
 	else {
 		for( int idx=0; idx < num_random; idx++) {
 			trees[idx] = Tree(4, 2);
-			trees[idx].initialize(all_mt, all_bin_function_mt, bin_function_op_sym,
-					all_bin_relation_mt, bin_relation_op_sym, seed++);
+			trees[idx].initialize(all_mt, all_bin_function_mt, bin_function_op_sym, all_bin_relation_mt,
+					bin_relation_op_sym, all_unary_function_mt, unary_function_op_sym, seed++);
 		}
 	}
 }
