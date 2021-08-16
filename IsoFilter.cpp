@@ -74,3 +74,13 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 	}
 	return max_time;
 }
+
+double
+IsoFilter::run_filter(const std::string& in_file, const std::string& filename, std::string& mace_filter)
+{
+	std::string command("cat " + in_file + " | " + mace_filter.c_str() + " >> " + filename + "1.out.f ");
+	int status = std::system(command.c_str());
+	if (status != 0)
+		std::cerr << "Error code in system call to spawn off process to filter out iso models from buckets." << std::endl;
+	return 0;
+}

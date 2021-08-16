@@ -42,27 +42,33 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<std::string>> interps;  // stores all interpretations
 	int num_blocks = 1;
 	int num_ops = 0;
-	int num_models = 0;
+	int num_models = argParser.num_input_models;
 	int acutal_num_randoms = -1;
+	double inv_calc_time = 0.0;
+	double max_time = 0.0;
 
-	if (argParser.num_random > 0) {
-		std::vector<int> res = Buckets::bucketing(in_file, domain_size, argParser.seed, argParser.num_random,
-				argParser.max_sample_size, argParser.sampling_frequency, argParser.max_random_level, interps, argParser.no_basic_invariants);
-		num_ops = res[0];
-		num_models = res[1];
-		acutal_num_randoms = res[2];
-		// int acutal_sample_size = res[3];
-		// return EXIT_SUCCESS;
+	if (argParser.num_random == 0 && argParser.no_basic_invariants) {
+		IsoFilter::run_filter(in_file, argParser.output_file_prefix, argParser.mace_filter);
 	}
 	else {
-		num_models = argParser.num_input_models;
-		Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
-	}
-	num_blocks = interps.size();
-	double inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
+		if (argParser.num_random > 0) {
+			std::vector<int> res = Buckets::bucketing(in_file, domain_size, argParser.seed, argParser.num_random,
+					argParser.max_sample_size, argParser.sampling_frequency, argParser.max_random_level, interps, argParser.no_basic_invariants);
+			num_ops = res[0];
+			num_models = res[1];
+			acutal_num_randoms = res[2];
+			// int acutal_sample_size = res[3];
+			// return EXIT_SUCCESS;
+		}
+		else {
+			Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
+		}
+		num_blocks = interps.size();
+		inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
 
-	double max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,
-			argParser.mace_filter, argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
+		max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,
+				argParser.mace_filter, argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
+	}
 
 	double total_run_time = Utils::get_wall_time() - start_time;
 	Utils::save_statistics(argParser.statistics_file, num_blocks, num_models, num_ops,

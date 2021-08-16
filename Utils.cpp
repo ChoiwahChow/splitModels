@@ -59,7 +59,7 @@ void Utils::save_statistics(const std::string& file_path, int num_blocks, int nu
 	if (num_random_used >= 0)
 		ofs << "\"num_random\": " << num_random_used << "," << std::endl;
 	ofs << "\"inv_calc_time\": " << inv_calc_time << "," << std::endl;
-	ofs << "\"max_time\": " << inv_calc_time << "," << std::endl;
+	ofs << "\"max_time\": " << max_time << "," << std::endl;
 	ofs << "\"total_run_time\": " << total_run_time << std::endl;
 	ofs << "}" << std::endl;
 	ofs.close();

@@ -20,6 +20,8 @@ public:
 
 	static double run_filter(const std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
 			const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, bool multiprocessing_on);
+
+	static double run_filter(const std::string& in_file, const std::string& filename, std::string& mace_filter);
 };
 
 #endif /* ISOFILTER_H_ */
