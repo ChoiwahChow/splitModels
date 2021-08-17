@@ -38,7 +38,6 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	int calc_invariant_start = Utils::get_wall_time();
 	std::vector<std::vector<std::string>> interps;  // stores all interpretations
 	int num_blocks = 1;
 	int num_ops = 0;
@@ -51,6 +50,7 @@ int main(int argc, char* argv[])
 		IsoFilter::run_filter(in_file, argParser.output_file_prefix, argParser.mace_filter);
 	}
 	else {
+		double calc_invariant_start = Utils::get_wall_time();
 		if (argParser.num_random > 0) {
 			std::vector<int> res = Buckets::bucketing(in_file, domain_size, argParser.seed, argParser.num_random,
 					argParser.max_sample_size, argParser.sampling_frequency, argParser.max_random_level, interps, argParser.no_basic_invariants);
