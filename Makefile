@@ -4,7 +4,7 @@ CXXFLAGS =	-O3 -Wall -fmessage-length=0
 
 OBJS =		splitModels.o Buckets.o Invariant.o RandomInvariants.o IsoFilter.o Interpretation.o Utils.o ArgumentParser.o TreeNode.o
 
-LIBS =
+LIBS = -lpthread
 
 TARGET =	splitModels
 

@@ -4,7 +4,9 @@
  *  Created on: Jul 14, 2021
  *      Author: uabcoimbra
  */
-
+#include <thread>
+#include <cstdlib>
+#include <dirent.h>
 #include <iostream>
 #include <fstream>
 #include <istream>
@@ -56,8 +58,10 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 			counter = 0;
 			ofs.close();
 			std::string command("cat " + filename + " | " + mace_filter.c_str() + " >> " + filename + ".f ");
-			if (multiprocessing_on && num_file % 5 != 0 && idx < interps.size() - 1)
-				command += " &";
+			if (multiprocessing_on && num_file % 20 != 0 && idx < interps.size() - 1) {
+				std::string p_file("parallel/" + std::to_string(num_file));
+				command = "(touch " + p_file + "; " + command + "; rm " + p_file + ") &";
+			}
 			int status = std::system(command.c_str());
 			if (status != 0)
 				std::cerr << "Error code in system call to spawn off process to filter out iso models from buckets." << std::endl;
@@ -71,6 +75,22 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 		double duration = Utils::get_wall_time() - start_time;
 		if (duration > max_time)
 			max_time = duration;
+	}
+	if (multiprocessing_on) {
+		std::chrono::milliseconds timespan(1000);
+		bool done = false;
+		while (!done) {
+			std::this_thread::sleep_for(timespan);
+			done = true;
+	        dirent* d;
+	        DIR* dir = opendir("parallel");
+	        readdir(dir);
+	        readdir(dir);
+	        if ((d = readdir(dir))!=NULL) {
+	        	done = false;
+	        }
+	        closedir(dir);
+		}
 	}
 	return max_time;
 }
