@@ -3,7 +3,9 @@
 This script runs the isomorphic models elimination for Mace4 outputs post interpformat - that is,
 all unnecessary displays are removed - only the models are left.
 
-Remember to delete everything in the working directory (here the default is ./working) before
+This script does not use invariants
+
+Remember to delete everything in the working directory (here the default is ./working_no_inv) before
 starting the run.
 """
 
@@ -31,7 +33,6 @@ def read_algebras(path):
         The keys in the dictionary are attributes such as id, name, order, num_non_iso"""
     all_algebras = pd.read_excel(path, engine='openpyxl');
     return all_algebras.set_index("id").to_dict(orient="index")
-
 
 def write_results(summary_file, stat):
     """write out the results"""
@@ -77,10 +78,16 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
         if minimum > 0:
             min_num_models_in_file = minimum
         elif min_num_models_in_file == -1:
-            if num_models > 10000:
+            if num_models > 1000000:
+                min_num_models_in_file = 1000
+            elif num_models > 100000:
                 min_num_models_in_file = 100
-            else:
+            elif num_models > 10000:
+                min_num_models_in_file = 100
+            elif num_models > 5000:
                 min_num_models_in_file = 10
+            else:
+                min_num_models_in_file = 1
 
         num_models = params['num_models']
         sample_size = num_models // sample_frequency + 2
@@ -124,12 +131,12 @@ def run_all():
     
     # specifies number of random invariants to generate, maximum number of random invariants to use,
     # minimum number of models in a file (-1 for default - to be calculated, and whether basic invariants are not use: "-n".
-    summary_file = "outputs/summary.csv"
-    working_dir = "working"
-    num_random = 50
+    summary_file = "outputs/summary_no_inv.csv"
+    working_dir = "working_no_inv"
+    num_random = 0
     max_level = 20
-    minimum = -1      # -1 for default, to be calculated
-    add_param = ""    # "-n" for no basic invariants, -p for parallel
+    minimum = 1        # -1 for default, to be calculated
+    add_param = "-n"    # "-n" for no basic invariants, -p for parallel
     
     os.makedirs(working_dir, exist_ok = True)
     
@@ -139,6 +146,8 @@ def run_all():
        fp.write('"id","name","order","#operations","#random invariants","#blocks","#non-isomorphic models","avg #non-iso models/block","#Mace4 outputs","invariants calc time (sec)", "total run time (sec)","max time (sec)"\n')
     for id, params in all_algebras.items():
         # params["filter"] = "isofilter2"
+        if id in [8, 56]:
+            params['order'] = -1
         print(datetime.now())
         run_algebra(id, params, summary_file, "new_outputs", working_dir, num_random, max_level, minimum, add_param)
 

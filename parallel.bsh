@@ -1,0 +1,20 @@
+
+date;
+
+echo "Doing #8"
+
+./splitModels -d5 -fisofilter -m100 -onew_working/8_non_iso_models_5_ -tnew_working/8_statistics_5.json -u2910948 -s1000 -r50 -l20 -x2912 -i"new_outputs/8_BL_algebras_5.out" -p
+
+date
+
+echo "Doing #20"
+
+./splitModels -d7 -fisofilter -m100 -onew_working/20_non_iso_models_7_ -tnew_working/20_statistics_7.json -u1494466 -s1000 -r50 -l20 -x1496 -i"new_outputs/20_Commutative_lattice_ordered_monoids_7.out" -p
+
+date
+
+echo "Doing #145"
+
+./splitModels -d12 -fisofilter -m1 -onew_working/145_non_iso_models_12_ -tnew_working/145_statistics_12.json -u1884 -s1 -r50 -l20 -x1886 -i"new_outputs/145_Digroup_12.out" -p
+
+date;

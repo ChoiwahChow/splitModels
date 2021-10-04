@@ -3,7 +3,9 @@
 This script runs the isomorphic models elimination for Mace4 outputs post interpformat - that is,
 all unnecessary displays are removed - only the models are left.
 
-Remember to delete everything in the working directory (here the default is ./working) before
+This script uses basic invariants and no random invariants.
+
+Remember to delete everything in the working directory (here the default is ./working_basic) before
 starting the run.
 """
 
@@ -124,10 +126,10 @@ def run_all():
     
     # specifies number of random invariants to generate, maximum number of random invariants to use,
     # minimum number of models in a file (-1 for default - to be calculated, and whether basic invariants are not use: "-n".
-    summary_file = "outputs/summary.csv"
-    working_dir = "working"
-    num_random = 50
-    max_level = 20
+    summary_file = "outputs/summary_basic.csv"
+    working_dir = "working_basic"
+    num_random = 0
+    max_level = 0
     minimum = -1      # -1 for default, to be calculated
     add_param = ""    # "-n" for no basic invariants, -p for parallel
     

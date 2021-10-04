@@ -61,9 +61,10 @@ int main(int argc, char* argv[])
 			// return EXIT_SUCCESS;
 		}
 		else {
-			Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
+			num_models = Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
 		}
 		num_blocks = interps.size();
+		std::cerr << "number of blocks: " << num_blocks << std::endl;
 		inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
 
 		max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,

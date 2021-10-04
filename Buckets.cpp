@@ -187,8 +187,10 @@ int Buckets::score_invariants(int domain_size, int base_invariants_length, std::
 		}
 	}
 	int score = 0;
+	int count = 0;
 	for (auto it : blocks) {
-		score += (it.second - 1)*(it.second - 1);
+		count += it.second;
+		score += (it.second)*(it.second - 1);
 	}
 	//if (random_pos > 0)
 	//	std::cerr << "min score " << score << " #blocks " << blocks.size() << " for invariant " << random_list[random_pos-1] << std::endl;
@@ -229,7 +231,7 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
 			}
 		}
 		//std::cerr << "***************** find_best_random_invariants, level: " << level << " trial score: " << min_score
-		//		<< " best invariant: " << best_invariant << std::endl;
+		// 		  << " best invariant: " << best_invariant << std::endl;
 		random_list[level] = best_invariant;
 
 		if (best_invariant > -1) {
