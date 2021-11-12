@@ -18,6 +18,9 @@ public:
 	IsoFilter();
 	virtual ~IsoFilter();
 
+	static int    run_filter(std::vector<std::string>& interps, const std::string& mace_filter,
+			const std::string& output_file_prefix);
+
 	static double run_filter(const std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
 			const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, bool multiprocessing_on);
 

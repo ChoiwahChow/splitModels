@@ -4,6 +4,7 @@
  *  Created on: Jul 14, 2021
  *      Author: uabcoimbra
  */
+#include <stdio.h>
 #include <thread>
 #include <cstdlib>
 #include <dirent.h>
@@ -13,6 +14,7 @@
 #include <sstream>
 #include <time.h>
 #include <sys/time.h>
+#include <array>
 #include "Utils.h"
 #include "IsoFilter.h"
 
@@ -23,6 +25,40 @@ IsoFilter::IsoFilter() {
 
 IsoFilter::~IsoFilter() {
 	// TODO Auto-generated destructor stub
+}
+
+int
+IsoFilter::run_filter(std::vector<std::string>& interps, const std::string& output_file_prefix, const std::string& mace_filter)
+{
+    char buffer[1024*1024];
+	unsigned int counter = 0;
+	std::ofstream ofs;
+	std::string filename(output_file_prefix + "_temp.out");
+	ofs.open(filename, std::ofstream::out);
+	for (unsigned int jdx=0; jdx < interps.size(); ++jdx)
+		ofs << interps[jdx];
+	ofs.close();
+	std::string command("cat " + filename + " | " + mace_filter.c_str());
+	FILE* pipe = popen(command.c_str(), "r");
+	std::string models;
+	while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+		models += buffer;
+	}
+	pclose(pipe);
+	interps.clear();
+
+	size_t pos = models.find("interpretation");  // there is at least one model
+	bool done = false;
+	while (!done) {
+		size_t new_pos = models.find("interpretation", pos+1);
+		if (new_pos == std::string::npos) {
+			new_pos = models.find("% ", pos+1);
+			done = true;
+		}
+		interps.push_back(models.substr(pos, new_pos));
+		pos = new_pos;
+	}
+	return (int) interps.size();
 }
 
 double
