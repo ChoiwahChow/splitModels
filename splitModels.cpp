@@ -53,7 +53,8 @@ int main(int argc, char* argv[])
 		double calc_invariant_start = Utils::get_wall_time();
 		if (argParser.num_random > 0) {
 			std::vector<int> res = Buckets::bucketing(in_file, domain_size, argParser.seed, argParser.num_random,
-					argParser.max_sample_size, argParser.sampling_frequency, argParser.max_random_level, interps, argParser.no_basic_invariants);
+					argParser.max_sample_size, argParser.sampling_frequency, argParser.max_random_level,
+					argParser.output_file_prefix, argParser.mace_filter, interps, argParser.no_basic_invariants);
 			num_ops = res[0];
 			num_models = res[1];
 			acutal_num_randoms = res[2];
@@ -61,14 +62,15 @@ int main(int argc, char* argv[])
 			// return EXIT_SUCCESS;
 		}
 		else {
-			num_models = Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level, interps);
+			num_models = Buckets::bucketing(in_file, domain_size, num_ops, argParser.max_random_level,
+					argParser.output_file_prefix, argParser.mace_filter, interps);
 		}
 		num_blocks = interps.size();
 		std::cerr << "number of blocks: " << num_blocks << std::endl;
 		inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
 
-		max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix,
-				argParser.mace_filter, argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
+		max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix, argParser.mace_filter,
+				argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
 	}
 
 	double total_run_time = Utils::get_wall_time() - start_time;

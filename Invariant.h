@@ -23,6 +23,8 @@ private:
 	static int calc_unary_invariant_vec(const std::vector<int>& mt, std::vector<std::vector<int>>& inv_vec, int inv_pos);
 	static int calc_ternary_invariant_vec(const std::vector<int>& mt, std::vector<std::vector<int>>& inv_vec, int inv_pos);
 
+	static int calc_binary_invariant_vec2(const std::vector<std::vector<int>>& mt, std::vector<std::vector<int>>& inv_vec, int inv_pos);
+
 public:
 	static const int ternary_inv_count = 1;
 	static const int unary_inv_count = 4;

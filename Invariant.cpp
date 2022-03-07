@@ -358,6 +358,99 @@ int Invariant::calc_binary_invariant_vec(const std::vector<std::vector<int>>& mt
 	return i_no - inv_pos + 1;
 }
 
+
+int Invariant::calc_binary_invariant_vec2(const std::vector<std::vector<int>>& mt, std::vector<std::vector<int>>& inv_vec, int inv_pos)
+{
+	/*
+	 * Let (A,*) be a model. Let a in A.
+
+		R(a):={(x,y) | x * y = a }.
+
+		The elements of R(a) can be seen as arrows in a direct graph x->y.
+
+		P1(a) := {x | exists y in A such that (x,y) in R(a)} %This is called the first projection.
+
+		P2(a) := {y | exists x in A such that (x,y) in R(a)} %This is called the second projection.
+
+		I(a):={(x,y) in R(a) | x = a} %Initial vertex a
+		T(a):={(x,y) in R(a) | y = a} %terminal vertex a
+
+		M(a):= {x in A | a->x->a}
+		M2(a):={(x,y) in R(a) | a ->x->y->a}
+		M3(a):={(x,y,z) | a->x->y->z->a}
+		...
+		Tr(a):={(x,y,z) | x->y->z->x} %Triangle on R(a).
+		Sq(a):={(x,y,z,w) | x->y->z->w->x and no subset is a triangle} %Squares on R(a).
+		etc.
+
+		S(a) :={(x,y) in R(a) | (y,x) in R(a) }.
+		The elements in S(a) can be denoted as {x,y} or x-y.
+
+		A(a) :={{x,y} in S(a) | a in {x,y}}.
+		TrA(a):={{x,y,z} | x-y-z-x}.
+		SqA(a):={{x,y,z,w} |x-y-z-w and no subset belongs to the previous}
+		Etc.
+	 */
+
+	/*
+	 * Calculate the invariant vector for a binary function
+	 * The binary function is coded as the 2-d vector mt.
+	 * The invariants for each element is a row in inv_vec (1-d array of domain_size vectors)
+	 * That is, each column in inv_vec is the same invariant for each element.
+	 */
+	int domain_size = inv_vec.size();
+	for (int idx = 0; idx < domain_size; ++idx) {
+		for (int jdx = 0; jdx < binary_inv_count; jdx++)
+			inv_vec[idx][inv_pos+jdx] = 0;
+	}
+
+	int i_no = inv_pos;
+	/* P1(a): First projection. For each element a,
+	 * Number of x such that x * y = a for some y
+	 * This is the same as number of rows that a appears in the multiplication table
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int idx = 0; idx < domain_size; ++idx) {
+			for (int jdx = 0; jdx < domain_size; ++jdx) {
+				if (mt[idx][jdx] == el) {
+					inv_vec[el][i_no] += 1;
+					break;
+				}
+			}
+		}
+	}
+
+	++i_no;
+	/* P2(a): Second projection. For each element a,
+	 * Number of y such that x * y = a for some x
+	 * This is the same as number of columns that a appears in the multiplication table
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int idx = 0; idx < domain_size; ++idx) {  // column
+			for (int jdx = 0; jdx < domain_size; ++jdx) {   // row
+				if (mt[jdx][idx] == el) {
+					inv_vec[el][i_no] += 1;
+					break;
+				}
+			}
+		}
+	}
+
+	++i_no;
+	/* M(a): For each element a,
+	 * Number of x such that a * x = a for some x
+	 * This is the same as the number of right identities for a
+	 */
+	for (int el = 0; el < domain_size; ++el) {
+		for (int idx = 0; idx < domain_size; ++idx) {
+			if (mt[el][idx] == el)
+				inv_vec[el][i_no] += 1;
+		}
+	}
+
+	return i_no - inv_pos + 1;
+}
+
 void Invariant::add_space(std::vector<std::vector<int>>& all_inv_vec, int num_space)
 {
 	for (size_t el=0; el < all_inv_vec.size(); el++) {
@@ -405,6 +498,16 @@ void Invariant::calc_invariant_vec(int domain_size, int num_ops, std::vector<std
 			inv_pos += count;
 		}
 	}
+	/* debug print
+	std::cout << all_inv_vec[0][0] << " ";
+	for( int x=11; x <13; x++)
+		std::cout << all_inv_vec[0][x] << " ";
+	std::cout << std::endl;
+	std::cout << all_inv_vec[1][0] << " ";
+	for( int x=11; x <13; x++)
+		std::cout << all_inv_vec[1][x] << " ";
+	std::cout << std::endl;
+	*/
 }
 
 

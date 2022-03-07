@@ -122,7 +122,6 @@ def run_algebra(id, params, summary_file, model_path = "outputs", working_path =
 
 def run_all():
     all_algebras = read_algebras("algebras.xlsx")
-    os.makedirs("outputs", exist_ok = True)
     
     # specifies number of random invariants to generate, maximum number of random invariants to use,
     # minimum number of models in a file (-1 for default - to be calculated, and whether basic invariants are not use: "-n".
@@ -142,7 +141,7 @@ def run_all():
     for id, params in all_algebras.items():
         # params["filter"] = "isofilter2"
         print(datetime.now())
-        run_algebra(id, params, summary_file, "new_outputs", working_dir, num_random, max_level, minimum, add_param)
+        run_algebra(id, params, summary_file, "outputs", working_dir, num_random, max_level, minimum, add_param)
 
     print(f'Finished at {datetime.now()}')
 

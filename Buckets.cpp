@@ -9,6 +9,7 @@
 #include <fstream>
 #include "Interpretation.h"
 #include "Invariant.h"
+#include "IsoFilter.h"
 #include "RandomInvariants.h"
 #include "Buckets.h"
 
@@ -62,8 +63,9 @@ int Buckets::calc_all_invariants(std::string& in_file, int domain_size, int& num
 }
 
 
-void Buckets::hash_model(std::unordered_map<std::string, int>& blocks, const std::string& model_str,
-		int& next_key, std::vector<std::vector<int>>& all_inv_vec, std::vector<std::vector<std::string>>& interps)
+void Buckets::hash_model(std::unordered_map<std::string, int>& blocks, const std::string& model_str, int& next_key,
+		std::vector<std::vector<int>>& all_inv_vec, const std::string& output_file_prefix, const std::string& mace_filter,
+		std::vector<std::vector<std::string>>& interps, int max_model_count_in_bucket)
 {
 	std::string key;
 
@@ -81,6 +83,10 @@ void Buckets::hash_model(std::unordered_map<std::string, int>& blocks, const std
 		interps.push_back(std::vector<std::string>());
 	}
 	interps[compact_key].push_back(model_str);
+	if( interps[compact_key].size() >= (size_t) max_model_count_in_bucket) {
+		int bucket_size = IsoFilter::run_filter(interps[compact_key], output_file_prefix, mace_filter);
+		std::cout << "Reduced bucket size: " << bucket_size << std::endl;
+	}
 }
 
 /*
@@ -90,7 +96,8 @@ void Buckets::hash_model(std::unordered_map<std::string, int>& blocks, const std
 int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int& num_models, const std::vector<int>& random_list,
 		std::vector<Tree>& trees, std::vector<int>& op_type, std::vector<std::string>& op_sym,
 		std::vector<std::vector<std::vector<int>>>& all_mt, std::vector<int>& all_bin_function_mt, std::vector<int>& all_bin_relation_mt,
-		std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
+		const std::string& output_file_prefix, const std::string& mace_filter, std::vector<std::vector<std::string>>& interps,
+		bool no_basic_invariants)
 {
 	std::stringstream ss;
 	int num_models_processed = 0;
@@ -128,7 +135,7 @@ int Buckets::calc_selected_invariants(std::string& in_file, int domain_size, int
         	for (int jdx = 0; jdx < domain_size; jdx++)
         		inv_vec[jdx][idx+basic_invariant_length] = inv[jdx];
         }
-        hash_model(blocks, ss.str(), next_key, inv_vec, interps);
+        hash_model(blocks, ss.str(), next_key, inv_vec, output_file_prefix, mace_filter, interps);
 		ss.str("");
         num_models_processed++;
 	}
@@ -253,7 +260,8 @@ int Buckets::find_best_random_invariants(int max_level, int domain_size, std::ve
  * This is for finding all buckets with random invariants
  */
 std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int starting_seed, int num_random, int max_sample_size,
-		int sampling_frequency, int max_level, std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
+		int sampling_frequency, int max_level, const std::string& output_file_prefix, const std::string& mace_filter,
+		std::vector<std::vector<std::string>>& interps, bool no_basic_invariants)
 {
 	int num_models = -1;
 	std::vector<int> op_type;
@@ -279,8 +287,8 @@ std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int s
 	find_best_random_invariants(max_level, domain_size, all_inv_vec, all_random_invariants, random_list);
 
 	interps.reserve(num_models);
-	int num_models_processed = calc_selected_invariants(in_file, domain_size, num_models, random_list,
-				trees, op_type, op_sym, all_mt, all_bin_function_mt, all_bin_relation_mt, interps, no_basic_invariants);
+	int num_models_processed = calc_selected_invariants(in_file, domain_size, num_models, random_list, trees, op_type, op_sym,
+			all_mt, all_bin_function_mt, all_bin_relation_mt, output_file_prefix, mace_filter, interps, no_basic_invariants);
 
 	std::vector<int> return_val;
 	return_val.push_back((int)op_sym.size());
@@ -293,7 +301,8 @@ std::vector<int> Buckets::bucketing(std::string& in_file, int domain_size, int s
 /*
  * This is for finding all buckets without random invariants
  */
-int Buckets::bucketing(std::string& in_file, int domain_size, int& num_ops, int num_input_models, std::vector<std::vector<std::string>>& interps)
+int Buckets::bucketing(std::string& in_file, int domain_size, int& num_ops, int num_input_models,
+		const std::string& output_file_prefix, const std::string& mace_filter, std::vector<std::vector<std::string>>& interps)
 {
 	int num_models = -1;
 	std::stringstream ss;
@@ -313,7 +322,7 @@ int Buckets::bucketing(std::string& in_file, int domain_size, int& num_ops, int 
 		if (num_ops <= 0)
 			continue;
         Invariant::calc_invariant_vec(domain_size, num_ops, all_mt, inv_vec, op_type, op_sym);
-        hash_model(blocks, ss.str(), next_key, inv_vec, interps);
+        hash_model(blocks, ss.str(), next_key, inv_vec, output_file_prefix, mace_filter, interps);
 		ss.str("");
 	}
 	num_ops = op_sym.size();

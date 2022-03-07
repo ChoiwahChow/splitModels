@@ -31,7 +31,6 @@ int
 IsoFilter::run_filter(std::vector<std::string>& interps, const std::string& output_file_prefix, const std::string& mace_filter)
 {
     char buffer[1024*1024];
-	unsigned int counter = 0;
 	std::ofstream ofs;
 	std::string filename(output_file_prefix + "_temp.out");
 	ofs.open(filename, std::ofstream::out);
