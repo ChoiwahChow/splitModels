@@ -14,6 +14,9 @@
 #include <vector>
 
 class IsoFilter {
+private:
+	static int find_slot(int num_threads);
+
 public:
 	IsoFilter();
 	virtual ~IsoFilter();
@@ -22,7 +25,7 @@ public:
 			const std::string& mace_filter);
 
 	static double run_filter(const std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
-			const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, bool multiprocessing_on);
+			const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, int num_threads);
 
 	static double run_filter(const std::string& in_file, const std::string& filename, std::string& mace_filter);
 };

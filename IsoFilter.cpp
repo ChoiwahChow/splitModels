@@ -60,9 +60,31 @@ IsoFilter::run_filter(std::vector<std::string>& interps, const std::string& outp
 	return (int) interps.size();
 }
 
+int
+IsoFilter::find_slot(int num_threads)
+{
+	std::vector<bool> slots(num_threads+1, false);
+	int slot = 0;
+	DIR* dir = opendir("parallel");
+       	dirent* d;
+	while ((d=readdir(dir)) != NULL) {
+		// std::cerr << "dir******************" << d->d_name << std::endl;
+		const char* fn = d->d_name;
+		if (fn[0] <= '9' && fn[0] >= '0')
+			slots[std::stoi(fn)] = true; 
+	}
+       	closedir(dir);
+	slot = num_threads;
+	while (slots[slot]) {
+		slot--;
+	}
+	// std::cerr << "out**************" << slot << std::endl;
+	return slot;
+}
+
 double
 IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
-		const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, bool multiprocessing_on)
+		const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, int num_threads)
 {
 	unsigned int start_pos = 0;
 	unsigned int end_pos = interps.size();
@@ -80,52 +102,59 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 
 	double max_time = 0.0;
 	unsigned int counter = 0;
-	int num_file = 1;
+	std::chrono::milliseconds timespan(200);
 	std::ofstream ofs;
-	std::string filename(output_file_prefix + std::to_string(num_file) + ".out");
-	ofs.open(filename, std::ofstream::out);
+	int start_idx = start_pos;
+	double start_time = Utils::get_wall_time();
 	for (unsigned int idx = start_pos; idx < end_pos; ++idx) {
-	    double start_time = Utils::get_wall_time();
+		// std::cerr << "**************start_idx " << start_idx << std::endl;
 		counter += interps[idx].size();
-		for (unsigned int jdx=0; jdx < interps[idx].size(); ++jdx)
-			ofs << interps[idx][jdx];
-		if (counter >= min_models_in_file || idx == end_pos - 1) {
-			counter = 0;
-			ofs.close();
-			std::string command("cat " + filename + " | " + mace_filter.c_str() + " >> " + filename + ".f ");
-			if (multiprocessing_on && num_file % 20 != 0 && idx < interps.size() - 1) {
-				std::string p_file("parallel/" + std::to_string(num_file));
-				command = "(touch " + p_file + "; " + command + "; rm " + p_file + ") &";
-			}
-			int status = std::system(command.c_str());
-			if (status != 0)
-				std::cerr << "Error code in system call to spawn off process to filter out iso models from buckets." << std::endl;
-			if (idx < interps.size() - 1) {
-				if (multiprocessing_on)
-					++num_file;
-				filename = output_file_prefix + std::to_string(num_file) + ".out";
-				ofs.open(filename, std::ofstream::out);
-			}
+		if (counter < min_models_in_file && idx < end_pos - 1) {
+			continue;
 		}
+
+		// std::cerr << "**************counter " << counter << "*****" << num_threads << std::endl;
+		counter = 0;
+		int slot = find_slot(num_threads);
+		//std::cerr << "**************slot " << slot << std::endl;
+		while (slot == 0) {
+			std::this_thread::sleep_for(timespan);
+			slot = find_slot(num_threads);
+		}
+		std::string filename(output_file_prefix + std::to_string(slot) + ".out");
+		ofs.open(filename, std::ofstream::out);
+		for (unsigned int pos = start_idx; pos <=idx; pos++) {
+			for (unsigned int jdx=0; jdx < interps[pos].size(); ++jdx)
+				ofs << interps[pos][jdx];
+		}
+		ofs.close();
+		start_idx = idx + 1;
+		std::string p_file("parallel/" + std::to_string(slot));
+		std::ofstream ctl_file;
+		ctl_file.open(p_file, std::ofstream::out);
+		ctl_file.close();
+		std::string command("(cat " + filename + " | " + mace_filter.c_str() + " >> " + filename + ".f; rm " + p_file + ") &");
+		//std::cerr << command << std::endl;
+		int status = std::system(command.c_str());
+		if (status != 0)
+			std::cerr << "Error code in system call to spawn off process to filter out iso models from buckets." << std::endl;
 		double duration = Utils::get_wall_time() - start_time;
 		if (duration > max_time)
 			max_time = duration;
 	}
-	if (multiprocessing_on) {
-		std::chrono::milliseconds timespan(1000);
-		bool done = false;
-		while (!done) {
-			std::this_thread::sleep_for(timespan);
-			done = true;
+	bool done = false;
+	while (!done) {
+		std::this_thread::sleep_for(timespan);
+		done = true;
 	        dirent* d;
 	        DIR* dir = opendir("parallel");
+		// get rid of . and ..
 	        readdir(dir);
 	        readdir(dir);
 	        if ((d = readdir(dir))!=NULL) {
 	        	done = false;
 	        }
 	        closedir(dir);
-		}
 	}
 	return max_time;
 }

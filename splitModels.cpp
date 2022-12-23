@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 		inv_calc_time = Utils::get_wall_time() - calc_invariant_start;
 
 		max_time = IsoFilter::run_filter(interps, argParser.output_file_prefix, argParser.mace_filter,
-				argParser.min_models_in_file, argParser.find_biggest_only, argParser.multiprocessing_on);
+				argParser.min_models_in_file, argParser.find_biggest_only, argParser.num_threads);
 	}
 
 	double total_run_time = Utils::get_wall_time() - start_time;

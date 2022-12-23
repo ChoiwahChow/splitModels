@@ -34,6 +34,7 @@ public:
 	int           max_sample_size;
 	int           num_random;
 	bool          multiprocessing_on;
+	int           num_threads;
 	std::string   mace_filter;
 	bool          find_biggest_only;
 	std::string   output_file_prefix;
