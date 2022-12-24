@@ -106,9 +106,13 @@ IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, cons
 	std::ofstream ofs;
 	int start_idx = start_pos;
 	double start_time = Utils::get_wall_time();
+	int batch_count = 0;
 	for (unsigned int idx = start_pos; idx < end_pos; ++idx) {
 		// std::cerr << "**************start_idx " << start_idx << std::endl;
 		counter += interps[idx].size();
+		batch_count++;
+		if (batch_count % 1000 == 0)
+			std::cout << "Debug******************* doing batch " << batch_count << std::endl;
 		if (counter < min_models_in_file && idx < end_pos - 1) {
 			continue;
 		}
