@@ -15,6 +15,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <array>
+#include <algorithm>
 #include "Utils.h"
 #include "IsoFilter.h"
 
@@ -83,31 +84,22 @@ IsoFilter::find_slot(int num_threads)
 }
 
 double
-IsoFilter::run_filter(const std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
+IsoFilter::run_filter(std::vector<std::vector<std::string>>& interps, const std::string& output_file_prefix,
 		const std::string& mace_filter, unsigned int min_models_in_file, bool find_biggest_only, int num_threads)
 {
-	unsigned int start_pos = 0;
 	unsigned int end_pos = interps.size();
-	if (find_biggest_only) {
-		unsigned int biggest = interps[start_pos].size();
-		for (unsigned int idx=0; idx < interps.size(); ++idx) {
-			if (biggest < interps[idx].size()) {
-				biggest = interps[idx].size();
-				start_pos = idx;
-			}
-		}
-		end_pos = start_pos + 1;
-		std::cerr << "Biggest partition: " << biggest << std::endl;
-	}
+	std::sort(interps.begin(), interps.end(), [](const std::vector<std::string> & a, const std::vector<std::string> & b){ return a.size() > b.size(); });
+	if (find_biggest_only)
+		end_pos = 1;
 
 	double max_time = 0.0;
 	unsigned int counter = 0;
 	std::chrono::milliseconds timespan(200);
 	std::ofstream ofs;
-	int start_idx = start_pos;
+	int start_idx = 0;
 	double start_time = Utils::get_wall_time();
 	int batch_count = 0;
-	for (unsigned int idx = start_pos; idx < end_pos; ++idx) {
+	for (unsigned int idx = 0; idx < end_pos; ++idx) {
 		// std::cerr << "**************start_idx " << start_idx << std::endl;
 		counter += interps[idx].size();
 		batch_count++;
