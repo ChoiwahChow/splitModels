@@ -5,7 +5,7 @@ The theoretical basis of this tool is given in
 João Araújo, Choiwah Chow, Mikolás Janota. Boosting isomorphic model filtering with invariants. Constraints An Int. J. 27(3): 360-379 (2022)
 
 ## Compiling the project
-This is a simple Makefile project:
+This is a simple gnu C++ Makefile project, tested in the linux platform:
 
 ```text
 make clean
