@@ -12,7 +12,7 @@
 ArgumentParser::ArgumentParser(int argc, char* argv[]):
 	domain_size(-1), min_models_in_file(1), sampling_frequency(1), max_sample_size(1000000), num_random(0), multiprocessing_on(false),
 	num_threads(1), mace_filter("isofilter"), find_biggest_only(false), output_file_prefix("working/models"), statistics_file(""),
-       	seed(9), interpretation_file_name(""), max_random_level(1), no_basic_invariants(false), num_input_models(300000)
+       	seed(9), interpretation_file_name(""), max_random_level(5), no_basic_invariants(false), num_input_models(300000)
 {
 	for(int idx=1; idx < argc; idx++) {
 		char opt = argv[idx][0];
